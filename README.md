@@ -59,7 +59,7 @@ aproximacion, vamos a representarlo como una malla (superficie) 2D de tamaño va
 parametro del sistema y no se puede modificar durante la simulacion. En este escenario, cada individuo sera
 representado como un punto, es decir, si pensamos el escenario como si fuera una pantalla, cada individuo se
 representara con un pixel.
-	En la Figura 1 se puede ver una representacion del estado del sistema en la que coexisten individuos
+	Se puede realizar una representacion del estado del sistema en la que coexisten individuos
 sanos (verde), contagiados asintomaticos (naranja), contagiados sintomaticos (rojo) y recuperados (azul) en
 un escenario en dos dimensiones.
 
