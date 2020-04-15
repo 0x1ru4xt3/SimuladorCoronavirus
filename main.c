@@ -7,6 +7,19 @@
 #define POBLACION 50
 #define RADIO     5
 
+// PROBABILIDADES POR EDAD
+#define EDAD1 0.004  // < 50
+#define EDAD2 0.013  // 50 - 60
+#define EDAD3 0.036  // 60 - 70
+#define EDAD4 0.08   // 70 - 80
+#define EDAD5 0.148  // > 80
+
+// CALCULO DE PROBABILIDADES (shorturl.at/abILW)
+float distrNormal(float v1, float v2, float sigma, float mi){
+	return cos(2*3.14*v2)*sqrt(-2.*log(v1))*sigma + mi;	
+}
+
+// FUNCION DE PROGRAMA PRINCIPAL
 int main(int argc, char** argv) {
 	// OBJETO PERSONA
 	struct persona {
@@ -38,7 +51,7 @@ int main(int argc, char** argv) {
 	// PRIMER INFECTADO!
 	personas[rand() % POBLACION].estado = 1;
 
-	// PROGRAMA 
+	// BUCLE PRINCIPAL 
 	while(1) {
 		muertosRonda = 0;
 		repuestas = 0;
