@@ -60,10 +60,13 @@ int main(int argc, char** argv) {
 		for(i=0; i<POBLACION; i++){
 			// MOVER PERSONA
 
-			// COMPROBAR RADIO DE CONTAGIO Y (si esta contagiado) CONTAGIAR Y CAMBIAR COLOR
+			// COMPROBAR SI ESTA CONTAGIADO: SI NO, COMPROBAR RADIO DE CONTAGIO Y (si es el caso) CONTAGIAR Y CAMBIAR COLOR
+			if(personas[i].estado == 1 || personas[i].estado ==2){
+				
+			}
 
 			// DECIDIR SI SE MUERE
-			muertosRonda += 1;
+			if(es el caso) muertosRonda += 1;
 		}		
 
 		// REPONER PERSONAS
