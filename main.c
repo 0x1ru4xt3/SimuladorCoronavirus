@@ -1,9 +1,10 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include "pila.h"
 
-
-#define SEED 0
+#define SEED      0
 #define ESCHEIGHT 50
 #define ESCWIDTH  50
 #define POBLACION 50
@@ -13,119 +14,202 @@
 #define EDAD1 0.004  // < 50
 #define EDAD2 0.013  // 50 - 60
 #define EDAD3 0.036  // 60 - 70
-#define EDAD4 0.08   // 70 - 80
+#define EDAD4 0.080  // 70 - 80
 #define EDAD5 0.148  // > 80
+
+// OBJETO PERSONA
+struct persona {
+	int edad;
+	int estado;
+	int diasContaminado;
+	float probMuerte;
+	int pos[2];
+	int vel[2];
+};
+
+// OBJETO PILA
+struct pila {
+    int top;
+    int capacity;
+    persona* array;
+};
 
 // CALCULO DE PROBABILIDADES (shorturl.at/abILW)
 float distrNormal(float v1, float v2, float sigma, float mi){
-	return cos(2*3.14*v2)*sqrt(-2.*log(v1))*sigma + mi;	
+	return cos(2*3.14*v2)*sqrt(-2.*log(v1))*sigma + mi;
+}
+
+// CREAR PERSONA
+persona crearPersona(){
+	persona per;
+	per.edad = ; // Generar por probabilidad
+	per.estado = 0;
+	per.diasContaminado = 0;
+
+	// PROBABILIDAD DE MUERTE EN BASE A EDAD
+	if(per.edad<50)
+		per.probMuerte = EDAD1;
+	else if(persona[i].edad>=50 && persona[i].edad<60)
+		per.probMuerte = EDAD2;
+	else if(persona[i].edad>=60 && persona[i].edad<70)
+		per.probMuerte = EDAD3;
+	else if(persona[i].edad>=80 && persona[i].edad<80)
+		per.probMuerte = EDAD4;
+	else
+		per.probMuerte = EDAD5;
+
+	//CALCULO DE LA POSICION y VELOCIDAD INICIAL
+	per.pos[0] = rand()%ESCHEIGHT;
+	per.pos[1] = rand()%ESCWIDTH;
+	per.vel[0] = rand()%10+(-5);
+	per.vel[1] = rand()%10+(-5);
+
+	return per;
+}
+
+// CALCULAR LA MEDIA DE EDAD
+int mediaEdad(persona *per, int pobl){
+	int i;
+	int media = 0;
+	for(i=0; i<pobl; i++)
+		media += per[i].edad;
+
+	return (media/pobl);
 }
 
 // FUNCION DE PROGRAMA PRINCIPAL
 int main(int argc, char** argv) {
-	// OBJETO PERSONA
-	struct persona {
-		int edad;
-		int estado;
-		float probMuerte;
-		int pos[2];
-		int vel[2];
-	};
 	srand(seed);
 
 	// INICIALIZACIONES
-	//persona personas[POBLACION];
-	//persona contagios[POBLACION]
-	persona *personas; //PARA GUARDAR TODAS LAS PERSONAS,SANOTES,ENFERMOS Y PALMADOS
-	persona *contagios; //PARA GUARDAR A LOS CONTAGIADOS
-	
-	personas=malloc(POBLACION*sizeof(persona));
-	contagios=malloc(POBLACION*sizeof(persona));
+	persona *personas;
+	persona **contagios;
+
+	personas  = malloc(POBLACION*sizeof(persona));
+	contagios = malloc(POBLACION*sizeof(*persona));
 
 	int pobActual = POBLACION;
-	int muertosRonda, repuestas, mediaEdad,contagiados;
+	int muertosRonda, curadosRonda, repuestas, mediaEdad, contagiados;
 	int diasTranscurridos = 0;
-	int i, e,j;
+    int muertosTotales = 0;
+    int curadosTotales = 0;
+	int contagiadosTotales = 0;
+	int i, e, j;
 
 	if(argc!=2){
-		fprintf(stderr,"No has metido bien el argumento");
+		fprintf(stderr,"%s <tiempoASimular>\n", argv[0]);
 		exit(1);
 	}
-	int tiempo=atoi(argv[1]);//Le pasamos cuantos dias queremos por el primer parametro.
+
+	int tiempo = atoi(argv[1]);
+
 	// CREAR POBLACION
-	for(i=0; i<POBLACION; i++){
-		personas[i].edad = rand()%100;
-		mediaedad+=mediaedad+personas[i].edad;
-		personas[i].estado = 0; //5 estados: 0-Perfectamente, 1-Contagiado pero sin sintomas, 2-Contagiado con sintomas, 3-Recuperado 4-Muerto
-		if(persona[i].edad<50){ //Inicializacion de las probabilidades de muerte dependiendo de la edad
-			personas[i].probMuerte = EDAD1;
-		}else if(persona[i].edad>=50 && persona[i].edad<60){
-			personas[i].probMuerte = EDAD2;
-		}else if(persona[i].edad>=60 && persona[i].edad<70){
-			personas[i].probMuerte = EDAD3;
-		}else if(persona[i].edad>=80 && persona[i].edad<80){
-			personas[i].probMuerte = EDAD4;
-		}else {
-			personas[i].probMuerte = EDAD5;
-		}
-		personas[i].pos[0] = rand()%ESCHEIGHT; //Calculo de la posicion inicial.
-		personas[i].pos[1] = rand()%ESCWIDTH;
-		personas[i].vel[0] = rand()%5;//Solo se podra mover por lo menos 5 posiciones para que no sea usain bolt
-		personas[i].vel[1] = rand()%5;
-	}
-	mediaedad=mediaedad/POBLACION;
+	for(i=0; i<POBLACION; i++)
+		personas[i] = crearPersona();
+	mediaEdad = mediaEdad(personas, POBLACION);
+
 	// PRIMER INFECTADO!
-	int aux=rang()%POBLACION;
+	int aux = rang()%POBLACION;
 	personas[aux].estado = 1;
-	contagios[contagiados]=persona[aux];
-	contagiados++;
-	// BUCLE PRINCIPAL 
-	while(diastranscurridos<=tiempo) {
+	contagios[0] = &personas[aux];
+	contagiadosTotales++;
+
+	// BUCLE PRINCIPAL
+	while(diasTranscurridos <= tiempo) {
 		muertosRonda = 0;
+        curadosRonda = 0;
+		contagiadosRonda = 0;
 		repuestas = 0;
 
-		// Mover a las personas
-		for(i=0; i<POBLACION; i++){
-			// MOVER PERSONA
-			if(personas[i].pos[0]+personas[i].vel[0]>ESCHEIGHT){
-				personas[i].pos[0]=ESCHEIGHT; //Ha llegado al limite
-			}else{
-				personas[i].pos[0]=personas[i].pos[0]+personas[i].vel[0]; //Movimiento en uno de los ejes
+    	// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
+		for(i=0; i<pobActual; i++){
+			if(personas[i].pos[0] + personas[i].vel[0] >= ESCHEIGHT){
+				personas[i].pos[0] = ESCHEIGHT;	// Ha llegado al limite
+				personas[i].vel[0] = rand()%5+(-5);
+			} else if(personas[i].pos[0] + personas[i].vel[0] <= 0){
+				personas[i].pos[0] = 0;			// Ha llegado al limite
+				personas[i].vel[0] = rand()%5;
+			} else {
+				personas[i].pos[0] += personas[i].vel[0]; //Movimiento en uno de los ejes
+				personas[i].vel[0] = rand()%10+(-5);
 			}
-			if(personas[i].pos[1]+personas[i].vel[1]>ESCWIDTH){
-				personas[i].pos[0]=ESCWIDTH; //Ha llegado al limite.
-			}else{
-				personas[i].pos[1]=personas[i].pos[1]+personas[i].vel[1]; //Movimiento en el otro eje
-			}
-			personas[i].vel[0] = rand()%5;//Solo se podra mover por lo menos 5 posiciones para que no sea usain bolt
-			personas[i].vel[1] = rand()%5;//Solo se podra mover por lo menos 5 posiciones para que no sea usain bolt
+
+			if(personas[i].pos[1] + personas[i].vel[1] >= ESCWIDTH){
+				personas[i].pos[1] = ESCWIDTH; 	// Ha llegado al limite.
+				personas[i].vel[1] = rand()%5+(-5);
+			} else if(personas[i].pos[0] + personas[i].vel[0] <= 0){
+				personas[i].pos[1] = 0;			// Ha llegado al limite.
+				personas[i].vel[1] = rand()%5;
+			} else {
+				personas[i].pos[1] += personas[i].vel[1]; //Movimiento en el otro eje
+				personas[i].vel[1] = rand()%10+(-5);
 			}
 		}
-		//Cogemos a los infectados y miramos si alguno esta cerca.
-		for(i=0; i<contagiados; i++){
-			rangox=contagios[i].pos[0];
-			rangoy=contagios[i].pos[1];
-			for(j=0;j<POBLACION;j++){
-				if(personas[i].estado==0 && personas[i].pos[0]<=rangox+RADIO&&personas[i].pos[0]>=rangox-RADIO){ //ESTA dentro del eje x.
-					if(personas[i].pos[1]<=rangoy+RADIO&&personas[i].pos[1]>=rangoy+RADIO){//Esta dentro del rango de Y.
-						//Habra que calcular la probabilidad de que se infecte (la normal?).
-						personas[i].estado=1;
-						contagios[contagiados]=personas[i];
-						contagiados++;
-					}
+
+		// COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
+		for(i=0; i<contagiados; i++) {
+			rangox = contagios[i]->pos[0];
+			rangoy = contagios[i]->pos[1];
+
+            for(e=0; e<pobActual; e++){
+				// SI NO ESTA INFECTADO
+				if(personas[e].estado == 0){
+					// SI ESTA DENTRO DEL RANGO DE EJE X
+					if(personas[e].pos[0] <= rangox+RADIO && personas[e].pos[0] >= rangox-RADIO{
+						// SI ESTA DENTRO DEL RANGO DE EJE Y
+						if(personas[e].pos[1] <= rangoy+RADIO && personas[e].pos[1] >= rangoy+RADIO){
+							//Habra que calcular la probabilidad de que se infecte (la normal?).
+							personas[e].estado = 1;
+							contagios[contagiadosTotales+contagiadosRonda-1] = &personas[e];
+							contagiadosRonda++;
+						}
+				    }
+				}
 			}
-			// DECIDIR SI SE MUERE
-			if(es el caso) muertosRonda += 1;
+
+			// DECIDIR SI SE MUERE O SE RECUPERA
+			if(es el caso){
+            	muertosRonda++;
+
+            } else {
+                diasContaminado++;
+                if(personas[i].estado == 1 && diasContaminado >= 15){
+                    personas[i].estado = 2;
+                } else if(personas[i].estado == 2 && diasContaminado >= 30){
+                    personas[i].estado = 3;
+                    curadosRonda++;
+                    infectadosTotales--;
+                	// Sacarlo de contagiados
+                }
+            }
 		}
+
 		// REPONER PERSONAS
 		repuestas = ;
+		for(i=0; i<repuestas; i++){
+			personas[nose] = crearPersona();
+		}
 
 		// ACTUALIZAR LENGTH ARRAY (pobActual - muertos + personas repuestas)
-		pobActual = ;
+		pobActual = pobActual - muertosRonda + repuestas;
+
+		// ACTUALIZAR EDAD MEDIA
+		mediaEdad = mediaEdad(personas, pobActual);
 
 		// RULAR TIEMPO
 		diasTranscurridos++;
+
+        // ACTUALIZAR VALORES TOTALES
+		contagiadosTotales += contagiadosRonda;
+		curadosTotales += curadosRonda;
+        muertosTotales += muertosRonda;
+
+        // VISUALIZAR PROGRESO
+        printf("EN %i DIAS: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS), %i NUEVAS PERSONAS. POBLACION: %i, EDAD MEDIA: %i\n",
+                diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, repuestas, pobActual, mediaEdad);
 	}
+
+	// LIBERAR MEMORIA AL ACABAR PROGRAMA
 	free(personas);
 	free(contagios);
 	free(sanos);
