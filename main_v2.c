@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
 			}
         }
 
-		// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
+	// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
         for(i=0; i<pobActual; i++){
             if(personas[i].estado == 1 || personas[i].estado == 2){ 
 			rangox = personas[i].pos[0];
