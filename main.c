@@ -83,8 +83,8 @@ int main(int argc, char** argv) {
 	int pobActual = POBLACION;
 	int muertosRonda, curadosRonda, repuestas, mediaEdad, contagiados;
 	int diasTranscurridos = 0;
-    int muertosTotales = 0;
-    int curadosTotales = 0;
+	int muertosTotales = 0;
+	int curadosTotales = 0;
 	int contagiadosTotales = 0;
 	int i, e, j;
 
@@ -109,11 +109,11 @@ int main(int argc, char** argv) {
 	// BUCLE PRINCIPAL
 	while(diasTranscurridos <= tiempo) {
 		muertosRonda = 0;
-        curadosRonda = 0;
+		curadosRonda = 0;
 		contagiadosRonda = 0;
 		repuestas = 0;
 
-    	// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
+    		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 		for(i=0; i<pobActual; i++){
 			if(personas[i].pos[0] + personas[i].vel[0] >= ESCHEIGHT){
 				personas[i].pos[0] = ESCHEIGHT;	// Ha llegado al limite
@@ -143,8 +143,13 @@ int main(int argc, char** argv) {
 			rangox = *contagios[i]->pos[0];
 			rangoy = *contagios[i]->pos[1];
 
+<<<<<<< HEAD
             for(e=0; e<pobActual; e++){
 				// SI NO ESTA INFECTADO y NO LO HA ESTADO
+=======
+			for(e=0; e<pobActual; e++){
+				// SI NO ESTA INFECTADO
+>>>>>>> e55111b8346a53a90ecfa398f642db699fad6835
 				if(personas[e].estado == 0){
 					// SI ESTA DENTRO DEL RANGO DE EJE X
 					if(personas[e].pos[0] <= rangox+RADIO && personas[e].pos[0] >= rangox-RADIO{
@@ -155,12 +160,13 @@ int main(int argc, char** argv) {
 							contagios[contagiadosTotales+contagiadosRonda-1] = &personas[e];
 							contagiadosRonda++;
 						}
-				    }
+					}
 				}
 			}
 
 			// DECIDIR SI SE MUERE O SE RECUPERA
 			if(es el caso){
+<<<<<<< HEAD
             	muertosRonda++;
                 *cotagiados[i] = persona; //Una persona vacia uqe creemos                
             } else {
@@ -175,6 +181,21 @@ int main(int argc, char** argv) {
                     infectadosTotales--;
                 }
             }
+=======
+				muertosRonda++;
+
+			} else {
+				diasContaminado++;
+				if(personas[i].estado == 1 && diasContaminado >= 15){
+					personas[i].estado = 2;
+				} else if(personas[i].estado == 2 && diasContaminado >= 30){
+					personas[i].estado = 3;
+					curadosRonda++;
+					infectadosTotales--;
+					// Sacarlo de contagiados
+				}
+			}
+>>>>>>> e55111b8346a53a90ecfa398f642db699fad6835
 		}
 
 		// REPONER PERSONAS
@@ -191,14 +212,14 @@ int main(int argc, char** argv) {
 		// RULAR TIEMPO
 		diasTranscurridos++;
 
-        // ACTUALIZAR VALORES TOTALES
+		// ACTUALIZAR VALORES TOTALES
 		contagiadosTotales += contagiadosRonda;
 		curadosTotales += curadosRonda;
-        muertosTotales += muertosRonda;
+		muertosTotales += muertosRonda;
 
-        // VISUALIZAR PROGRESO
-        printf("EN %i DIAS: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS), %i NUEVAS PERSONAS. POBLACION: %i, EDAD MEDIA: %i\n",
-                diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, repuestas, pobActual, mediaEdad);
+		// VISUALIZAR PROGRESO
+		printf("EN %i DIAS: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS), %i NUEVAS PERSONAS. POBLACION: %i, EDAD MEDIA: %i\n",
+			diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, repuestas, pobActual, mediaEdad);
 	}
 
 	// LIBERAR MEMORIA AL ACABAR PROGRAMA
