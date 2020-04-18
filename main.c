@@ -143,13 +143,8 @@ int main(int argc, char** argv) {
 			rangox = *contagios[i]->pos[0];
 			rangoy = *contagios[i]->pos[1];
 
-<<<<<<< HEAD
             for(e=0; e<pobActual; e++){
 				// SI NO ESTA INFECTADO y NO LO HA ESTADO
-=======
-			for(e=0; e<pobActual; e++){
-				// SI NO ESTA INFECTADO
->>>>>>> e55111b8346a53a90ecfa398f642db699fad6835
 				if(personas[e].estado == 0){
 					// SI ESTA DENTRO DEL RANGO DE EJE X
 					if(personas[e].pos[0] <= rangox+RADIO && personas[e].pos[0] >= rangox-RADIO{
@@ -166,7 +161,6 @@ int main(int argc, char** argv) {
 
 			// DECIDIR SI SE MUERE O SE RECUPERA
 			if(es el caso){
-<<<<<<< HEAD
             	muertosRonda++;
                 *cotagiados[i] = persona; //Una persona vacia uqe creemos                
             } else {
@@ -181,21 +175,6 @@ int main(int argc, char** argv) {
                     infectadosTotales--;
                 }
             }
-=======
-				muertosRonda++;
-
-			} else {
-				diasContaminado++;
-				if(personas[i].estado == 1 && diasContaminado >= 15){
-					personas[i].estado = 2;
-				} else if(personas[i].estado == 2 && diasContaminado >= 30){
-					personas[i].estado = 3;
-					curadosRonda++;
-					infectadosTotales--;
-					// Sacarlo de contagiados
-				}
-			}
->>>>>>> e55111b8346a53a90ecfa398f642db699fad6835
 		}
 
 		// REPONER PERSONAS
