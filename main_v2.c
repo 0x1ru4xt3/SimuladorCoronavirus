@@ -75,14 +75,13 @@ int main(int argc, char** argv) {
 
 	// INICIALIZACIONES
 	persona *personas;
-
 	personas  = malloc(POBLACION*sizeof(persona));
 
 	int pobActual = POBLACION;
 	int muertosRonda, curadosRonda, repuestas, mediaEdad, contagiados;
 	int diasTranscurridos = 0;
-    int muertosTotales = 0;
-    int curadosTotales = 0;
+	int muertosTotales = 0;
+	int curadosTotales = 0;
 	int contagiadosTotales = 0;
 	int i, e, j;
 
@@ -106,75 +105,74 @@ int main(int argc, char** argv) {
 	// BUCLE PRINCIPAL
 	while(diasTranscurridos <= tiempo) {
 		muertosRonda = 0;
-        curadosRonda = 0;
+		curadosRonda = 0;
 		contagiadosRonda = 0;
 		repuestas = 0;
 
-    	// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
+		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 		for(i=0; i<pobActual; i++){
-   			if(personas[i].pos[0] + personas[i].vel[0] >= ESCHEIGHT){
-    			personas[i].pos[0] = ESCHEIGHT;	// Ha llegado al limite
-	    		personas[i].vel[0] = rand()%5+(-5);
-	    	} else if(personas[i].pos[0] + personas[i].vel[0] <= 0){
-	    		personas[i].pos[0] = 0;			// Ha llegado al limite
-	    		personas[i].vel[0] = rand()%5;
-	    	} else {
-	    		personas[i].pos[0] += personas[i].vel[0]; //Movimiento en uno de los ejes
-	    		personas[i].vel[0] = rand()%10+(-5);
-	    	}
+			if(personas[i].pos[0] + personas[i].vel[0] >= ESCHEIGHT){
+				personas[i].pos[0] = ESCHEIGHT;	// Ha llegado al limite
+				personas[i].vel[0] = rand()%5+(-5);
+			} else if(personas[i].pos[0] + personas[i].vel[0] <= 0){
+				personas[i].pos[0] = 0;			// Ha llegado al limite
+				personas[i].vel[0] = rand()%5;
+			} else {
+				personas[i].pos[0] += personas[i].vel[0]; //Movimiento en uno de los ejes
+				personas[i].vel[0] = rand()%10+(-5);
+			}
    
-    		if(personas[i].pos[1] + personas[i].vel[1] >= ESCWIDTH){
-	    		personas[i].pos[1] = ESCWIDTH; 	// Ha llegado al limite.
-	    		personas[i].vel[1] = rand()%5+(-5);
-	    	} else if(personas[i].pos[0] + personas[i].vel[0] <= 0){
-	    		personas[i].pos[1] = 0;			// Ha llegado al limite.
-	    		personas[i].vel[1] = rand()%5;
-	    	} else {
-	    		personas[i].pos[1] += personas[i].vel[1]; //Movimiento en el otro eje
-	    		personas[i].vel[1] = rand()%10+(-5);
-	    	}
+			if(personas[i].pos[1] + personas[i].vel[1] >= ESCWIDTH){
+				personas[i].pos[1] = ESCWIDTH; 	// Ha llegado al limite.
+				personas[i].vel[1] = rand()%5+(-5);
+			} else if(personas[i].pos[0] + personas[i].vel[0] <= 0){
+				personas[i].pos[1] = 0;			// Ha llegado al limite.
+				personas[i].vel[1] = rand()%5;
+			} else {
+				personas[i].pos[1] += personas[i].vel[1]; //Movimiento en el otro eje
+				personas[i].vel[1] = rand()%10+(-5);
+			}
         }
 
 		// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
         for(i=0; i<pobActual; i++){
             if(personas[i].estado == 1 || personas[i].estado == 2){ 
-    			rangox = personas[i].pos[0];
-	    		rangoy = personas[i].pos[1];
-
-                for(e=0; e<pobActual; e++){
-	    			// SI NO ESTA INFECTADO y NO LO HA ESTADO
-		    		if(personas[e].estado == 0){
-			    		// SI ESTA DENTRO DEL RANGO DE EJE X
-			    		if(personas[e].pos[0] <= rangox+RADIO && personas[e].pos[0] >= rangox-RADIO{
-			    			// SI ESTA DENTRO DEL RANGO DE EJE Y
-			    			if(personas[e].pos[1] <= rangoy+RADIO && personas[e].pos[1] >= rangoy+RADIO){
-				    			//Habra que calcular la probabilidad de que se infecte (la normal?).
-			    				personas[e].estado = 1;
-			    				contagiadosRonda++;
-				    		}
-				        }
-				    }   
-    			}
+			rangox = personas[i].pos[0];
+			rangoy = personas[i].pos[1];
+	
+			for(e=0; e<pobActual; e++){
+				// SI NO ESTA INFECTADO y NO LO HA ESTADO
+				if(personas[e].estado == 0){
+					// SI ESTA DENTRO DEL RANGO DE EJE X
+					if(personas[e].pos[0] <= rangox+RADIO && personas[e].pos[0] >= rangox-RADIO{
+						// SI ESTA DENTRO DEL RANGO DE EJE Y
+						if(personas[e].pos[1] <= rangoy+RADIO && personas[e].pos[1] >= rangoy+RADIO){
+							//Habra que calcular la probabilidad de que se infecte (la normal?).
+							personas[e].estado = 1;
+							contagiadosRonda++;
+						}
+					}
+				}   
+			}
             
     
-			    // DECIDIR SI SE MUERE O SE RECUPERA
-			    if(es el caso){
-                    for(e=i; e<pobActual-1; e++)
-                        personas[e] = personas[e+1];
-                	muertosRonda++;
-                    infectadosTotales--;
-                    pobActual--;
-                } else {
-                    diasContaminado++;
-                    if(personas[i].estado == 1 && diasContaminado >= 15){
-                        personas[i].estado = 2;
-                    } else if(personas[i].estado == 2 && diasContaminado >= 30){
-                        personas[i].estado = 3;
-                        curadosRonda++;
-                        infectadosTotales--;
-                    }
-                }
-		    }
+			// DECIDIR SI SE MUERE O SE RECUPERA
+			if(es el caso){
+				for(e=i; e<pobActual-1; e++)
+					personas[e] = personas[e+1];
+				muertosRonda++;
+				infectadosTotales--;
+				pobActual--;
+			} else {
+				diasContaminado++;
+				if(personas[i].estado == 1 && diasContaminado >= 15){
+					personas[i].estado = 2;
+				} else if(personas[i].estado == 2 && diasContaminado >= 30){
+					personas[i].estado = 3;
+					curadosRonda++;
+					infectadosTotales--;
+				}
+			}
         }
 
 		// REPONER PERSONAS
