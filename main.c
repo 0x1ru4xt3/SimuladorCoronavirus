@@ -2,12 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <gsl/gsl_sf_bessel.h>
 
 #define SEED      0
 #define ESCHEIGHT 50
 #define ESCWIDTH  50
 #define POBLACION 50
 #define RADIO     5
+#define PROBRADIO 0.7
 
 // PROBABILIDADES POR EDAD
 #define EDAD1 0.004  // < 50
@@ -26,15 +28,10 @@ struct persona {
 	int vel[2];
 };
 
-// CALCULO DE PROBABILIDADES
-float distrNormal(float v1, float v2, float sigma, float mi){
-	return cos(2*3.14*v2)*sqrt(-2.*log(v1))*sigma + mi;
-}
-
 // CREAR PERSONA
 persona crearPersona(){
 	persona per;
-	per.edad = ; // Generar por probabilidad
+	per.edad = gsl_ran_gaussian_ziggurat(50, 0.2); // Generar por probabilidad
 	per.estado = 0;
 	per.diasContaminado = 0;
 
@@ -71,26 +68,26 @@ int mediaEdad(persona *per, int pobl){
 
 // FUNCION DE PROGRAMA PRINCIPAL
 int main(int argc, char** argv) {
+	if(argc!=2){
+		fprintf(stderr,"%s <tiempoASimular>\n", argv[0]);
+		exit(1);
+	}
+
 	srand(seed);
 
 	// INICIALIZACIONES
 	persona *personas;
 	personas  = malloc(POBLACION*sizeof(persona));
 
+	int tiempo = atoi(argv[1]);
 	int pobActual = POBLACION;
 	int muertosRonda, curadosRonda, repuestas, mediaEdad, contagiados;
 	int diasTranscurridos = 0;
 	int muertosTotales = 0;
 	int curadosTotales = 0;
 	int contagiadosTotales = 0;
+	float deci;
 	int i, e, j;
-
-	if(argc!=2){
-		fprintf(stderr,"%s <tiempoASimular>\n", argv[0]);
-		exit(1);
-	}
-
-	int tiempo = atoi(argv[1]);
 
 	// CREAR POBLACION
 	for(i=0; i<POBLACION; i++)
@@ -147,16 +144,19 @@ int main(int argc, char** argv) {
 						if(personas[e].pos[0] <= rangox+RADIO && personas[e].pos[0] >= rangox-RADIO){
 							// SI ESTA DENTRO DEL RANGO DE EJE Y
 							if(personas[e].pos[1] <= rangoy+RADIO && personas[e].pos[1] >= rangoy+RADIO){
-								//Habra que calcular la probabilidad de que se infecte (la normal?).
-								personas[e].estado = 1;
-								contagiadosRonda++;
+								deci = (rand()%100) /100;
+								if(deci>PROBRADIO){
+									personas[e].estado = 1;
+									contagiadosRonda++;
+								}
 							}
 						}
 					}
 				}
 
 				// DECIDIR SI SE MUERE O SE RECUPERA
-				if(es el caso){
+				deci = (rand()%100) /100;
+				if(deci >= personas[i].probMuerte){
 					for(e=i; e<pobActual-1; e++)
 						personas[e] = personas[e+1];
 					muertosRonda++;
