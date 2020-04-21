@@ -4,11 +4,11 @@
 #include <stdbool.h>
 
 #define SEED      0
-#define ESCHEIGHT 50
-#define ESCWIDTH  50
+#define ESCHEIGHT 15
+#define ESCWIDTH  15
 #define POBLACION 50
 #define RADIO     5
-#define PROBRADIO 0.7
+#define PROBRADIO 0.3
 
 // PROBABILIDADES POR EDAD
 #define EDAD1 0.004  // < 50
@@ -30,7 +30,7 @@ struct persona {
 // CREAR PERSONA
 struct persona crearPersona(){
 	struct persona per;
-	per.edad = 50; // Generar por probabilidad
+	per.edad = 85; // Generar por probabilidad
 	per.estado = 0;
 	per.diasContaminado = 0;
 
@@ -74,10 +74,12 @@ int main(int argc, char** argv) {
 
 	srand(SEED);
 
+    printf("STATUS: Inicializando array dinamico...\n");
 	// INICIALIZACIONES
 	struct persona *personas;
     personas  = malloc(POBLACION*sizeof(struct persona));
 
+    printf("STATUS: Inicializando variables...\n");
 	int tiempo = atoi(argv[1]);
 	int pobActual = POBLACION;
     int rangox, rangoy;
@@ -89,16 +91,19 @@ int main(int argc, char** argv) {
 	float deci;
 	int i, e, j;
 
+    printf("STATUS: Creando población...\n");
 	// CREAR POBLACION
 	for(i=0; i<POBLACION; i++)
 		personas[i] = crearPersona();
 	edadMedia = mediaEdad(personas, POBLACION);
 
+    printf("STATUS: PRIMER INFECTADO!\n");
 	// PRIMER INFECTADO!
 	int aux = rand()%POBLACION;
 	personas[aux].estado = 1;
 	contagiadosTotales++;
 
+    printf("STATUS: Iniciando programa...\n");
 	// BUCLE PRINCIPAL
 	while(diasTranscurridos <= tiempo) {
 		muertosRonda = 0;
@@ -122,13 +127,15 @@ int main(int argc, char** argv) {
 			if(personas[i].pos[1] + personas[i].vel[1] >= ESCWIDTH){
 				personas[i].pos[1] = ESCWIDTH; 	// Ha llegado al limite.
 				personas[i].vel[1] = rand()%5+(-5);
-			} else if(personas[i].pos[0] + personas[i].vel[0] <= 0){
+			} else if(personas[i].pos[1] + personas[i].vel[0] <= 0){
 				personas[i].pos[1] = 0;			// Ha llegado al limite.
 				personas[i].vel[1] = rand()%5;
 			} else {
 				personas[i].pos[1] += personas[i].vel[1]; //Movimiento en el otro eje
 				personas[i].vel[1] = rand()%10+(-5);
 			}
+
+//            printf("POSICION DE personas[%i] = {%i,%i}\n", i, personas[i].pos[0], personas[i].pos[1]);
         }
 
     	// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
@@ -144,8 +151,9 @@ int main(int argc, char** argv) {
 						if(personas[e].pos[0] <= rangox+RADIO && personas[e].pos[0] >= rangox-RADIO){
 							// SI ESTA DENTRO DEL RANGO DE EJE Y
 							if(personas[e].pos[1] <= rangoy+RADIO && personas[e].pos[1] >= rangoy+RADIO){
-								deci = (rand()%100) /100;
+								deci = (rand()%100) /100.0;
 								if(deci>PROBRADIO){
+                                    printf("STATUS: NUEVO CONTAGIO!\n");
 									personas[e].estado = 1;
 									contagiadosRonda++;
 								}
@@ -157,6 +165,7 @@ int main(int argc, char** argv) {
 				// DECIDIR SI SE MUERE O SE RECUPERA
 				deci = (rand()%100) /100;
 				if(deci >= personas[i].probMuerte){
+                    printf("STATUS: NUEVO FALLECIDO!\n");
 					for(e=i; e<pobActual-1; e++)
 						personas[e] = personas[e+1];
 					muertosRonda++;
@@ -167,6 +176,7 @@ int main(int argc, char** argv) {
 					if(personas[i].estado == 1 && personas[i].diasContaminado >= 5){
 						personas[i].estado = 2;
 					} else if(personas[i].estado == 2 && personas[i].diasContaminado >= 15){
+                        printf("STATUS: NUEVO SUPERVIVIENTE!\n");
 						personas[i].estado = 3;
 						curadosRonda++;
 						contagiadosTotales--;
@@ -174,14 +184,6 @@ int main(int argc, char** argv) {
 				}
 	        }
 		}
-
-		// REPONER PERSONAS
-		repuestas = rand() % (POBLACION - pobActual);
-		for(i=0; i<repuestas; i++)
-			personas[pobActual+i] = crearPersona();
-
-		// ACTUALIZAR LENGTH ARRAY
-		pobActual = pobActual + repuestas;
 
 		// ACTUALIZAR EDAD MEDIA
 		edadMedia = mediaEdad(personas, pobActual);
@@ -195,11 +197,15 @@ int main(int argc, char** argv) {
 	    muertosTotales += muertosRonda;
 
 	    // VISUALIZAR PROGRESO
-	    printf("EN %i DIAS: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS), %i NUEVAS PERSONAS. POBLACION: %i, EDAD MEDIA: %i\n",
+	    printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS), %i NUEVAS PERSONAS. POBLACION: %i, EDAD MEDIA: %i\n",
 	            diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, repuestas, pobActual, edadMedia);
 
+        if(contagiadosTotales == 0) break;
+        if(pobActual == 0) break;
 	}
 
+//    printf("STATUS: Liberando memoria alocada...\n");
 	// LIBERAR MEMORIA AL ACABAR PROGRAMA
 	free(personas);
+    printf("STATUS: Fin del programa.\n");
 }
