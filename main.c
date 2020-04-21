@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <gsl/gsl_sf_bessel.h>
 
 #define SEED      0
 #define ESCHEIGHT 50
@@ -29,20 +28,20 @@ struct persona {
 };
 
 // CREAR PERSONA
-persona crearPersona(){
-	persona per;
-	per.edad = gsl_ran_gaussian_ziggurat(50, 0.2); // Generar por probabilidad
+struct persona crearPersona(){
+	struct persona per;
+	per.edad = 50; // Generar por probabilidad
 	per.estado = 0;
 	per.diasContaminado = 0;
 
 	// PROBABILIDAD DE MUERTE EN BASE A EDAD
 	if(per.edad<50)
 		per.probMuerte = EDAD1;
-	else if(persona[i].edad>=50 && persona[i].edad<60)
+	else if(per.edad>=50 && per.edad<60)
 		per.probMuerte = EDAD2;
-	else if(persona[i].edad>=60 && persona[i].edad<70)
+	else if(per.edad>=60 && per.edad<70)
 		per.probMuerte = EDAD3;
-	else if(persona[i].edad>=80 && persona[i].edad<80)
+	else if(per.edad>=80 && per.edad<80)
 		per.probMuerte = EDAD4;
 	else
 		per.probMuerte = EDAD5;
@@ -57,7 +56,7 @@ persona crearPersona(){
 }
 
 // CALCULAR LA MEDIA DE EDAD
-int mediaEdad(persona *per, int pobl){
+int mediaEdad(struct persona *per, int pobl){
 	int i;
 	int media = 0;
 	for(i=0; i<pobl; i++)
@@ -73,15 +72,16 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-	srand(seed);
+	srand(SEED);
 
 	// INICIALIZACIONES
-	persona *personas;
-	personas  = malloc(POBLACION*sizeof(persona));
+	struct persona *personas;
+    personas  = malloc(POBLACION*sizeof(struct persona));
 
 	int tiempo = atoi(argv[1]);
 	int pobActual = POBLACION;
-	int muertosRonda, curadosRonda, repuestas, mediaEdad, contagiados;
+    int rangox, rangoy;
+	int muertosRonda, curadosRonda, repuestas, edadMedia, contagiadosRonda;
 	int diasTranscurridos = 0;
 	int muertosTotales = 0;
 	int curadosTotales = 0;
@@ -92,10 +92,10 @@ int main(int argc, char** argv) {
 	// CREAR POBLACION
 	for(i=0; i<POBLACION; i++)
 		personas[i] = crearPersona();
-	mediaEdad = mediaEdad(personas, POBLACION);
+	edadMedia = mediaEdad(personas, POBLACION);
 
 	// PRIMER INFECTADO!
-	int aux = rang()%POBLACION;
+	int aux = rand()%POBLACION;
 	personas[aux].estado = 1;
 	contagiadosTotales++;
 
@@ -160,7 +160,7 @@ int main(int argc, char** argv) {
 					for(e=i; e<pobActual-1; e++)
 						personas[e] = personas[e+1];
 					muertosRonda++;
-					infectadosTotales--;
+					contagiadosTotales--;
 					pobActual--;
 				} else {
 					personas[i].diasContaminado++;
@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
 					} else if(personas[i].estado == 2 && personas[i].diasContaminado >= 15){
 						personas[i].estado = 3;
 						curadosRonda++;
-						infectadosTotales--;
+						contagiadosTotales--;
 					}
 				}
 	        }
@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
 		pobActual = pobActual + repuestas;
 
 		// ACTUALIZAR EDAD MEDIA
-		mediaEdad = mediaEdad(personas, pobActual);
+		edadMedia = mediaEdad(personas, pobActual);
 
 		// RULAR TIEMPO
 		diasTranscurridos++;
@@ -196,7 +196,7 @@ int main(int argc, char** argv) {
 
 	    // VISUALIZAR PROGRESO
 	    printf("EN %i DIAS: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS), %i NUEVAS PERSONAS. POBLACION: %i, EDAD MEDIA: %i\n",
-	            diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, repuestas, pobActual, mediaEdad);
+	            diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, repuestas, pobActual, edadMedia);
 
 	}
 
