@@ -48,12 +48,13 @@ int NumeroRandom() {
     return auxa;
 
 }
+
 //Funcion para calcular un numero entre 0 y 1, con el cual veremos si muere o no.
 float calcProb(){
     const gsl_rng_type * T;
     gsl_rng * r;
     gsl_rng_env_setup();
-    struct timeval tv; 
+    struct timeval tv;
     gettimeofday(&tv,0);
     unsigned long mySeed = tv.tv_sec + tv.tv_usec;
     T = gsl_rng_default; // Generar setup
@@ -64,12 +65,10 @@ float calcProb(){
     return (float)u;
 }
 
-
-
 // CREAR PERSONA
 struct persona crearPersona(){
 	struct persona per;
-	per.edad = NumeroRandom(); // Generar por probabilidad
+	per.edad = NumeroRandom();
 	per.estado = 0;
 	per.diasContaminado = 0;
 
@@ -126,7 +125,6 @@ int main(int argc, char** argv) {
 	ESCWIDTH=atoi(argv[3]);
 	RADIO=atoi(argv[4]);
 	PROBRADIO=atof(argv[5]);
-	printf("\n Los datos dados son: TIEMPO %d,POBLACION: %d, ANCHURA: %d, ALTO: %d, RADIO: %d, PROB DEL RADIO: %f\n",tiempo, POBLACION,ESCHEIGHT,ESCWIDTH,RADIO,PROBRADIO);
 	int pobActual = POBLACION;
    	int rangox, rangoy;
 	int muertosRonda, curadosRonda, repuestas, edadMedia, contagiadosRonda;
@@ -137,6 +135,7 @@ int main(int argc, char** argv) {
 	float deci;
 	int i, e, j;
 
+	printf("\n Los datos dados son: TIEMPO %d,POBLACION: %d, ANCHURA: %d, ALTO: %d, RADIO: %d, PROB DEL RADIO: %f\n",tiempo, POBLACION,ESCHEIGHT,ESCWIDTH,RADIO,PROBRADIO);
 	printf("STATUS: Creando población...\n");
 	// CREAR POBLACION
 	for(i=0; i<POBLACION; i++)
@@ -182,7 +181,6 @@ int main(int argc, char** argv) {
 				personas[i].vel[1] = rand()%10+(-5);
 			}
 
-//            printf("POSICION DE personas[%i] = {%i,%i}\n", i, personas[i].pos[0], personas[i].pos[1]);
         }
 
     	// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
@@ -200,7 +198,7 @@ int main(int argc, char** argv) {
 							if(personas[e].pos[1] <= rangoy+RADIO && personas[e].pos[1] >= rangoy-RADIO){
 								deci = (rand()%100) /100.0;
 								if(deci>PROBRADIO){
-                                    					printf("STATUS: NUEVO CONTAGIO!\n");
+//                                    					printf("STATUS: NUEVO CONTAGIO!\n");
 									personas[e].estado = 1;
 									contagiadosRonda++;
 								}
@@ -211,9 +209,8 @@ int main(int argc, char** argv) {
 
 				// DECIDIR SI SE MUERE O SE RECUPERA
 				deci = calcProb();
-				//printf("La probabilidad de que muera es: %f sobre %f\n",deci,personas[i].probMuerte);
 				if(deci <= personas[i].probMuerte){
-                    			printf("STATUS: NUEVO FALLECIDO!\n");
+//                    			printf("STATUS: NUEVO FALLECIDO!\n");
 					for(e=i; e<pobActual-1; e++)
 						personas[e] = personas[e+1];
 					muertosRonda++;
@@ -224,7 +221,7 @@ int main(int argc, char** argv) {
 					if(personas[i].estado == 1 && personas[i].diasContaminado >= 5){
 						personas[i].estado = 2;
 					} else if(personas[i].estado == 2 && personas[i].diasContaminado >= 15){
-                        			printf("STATUS: NUEVO SUPERVIVIENTE!\n");
+//                        			printf("STATUS: NUEVO SUPERVIVIENTE!\n");
 						personas[i].estado = 3;
 						curadosRonda++;
 						contagiadosTotales--;
@@ -245,14 +242,14 @@ int main(int argc, char** argv) {
 	    muertosTotales += muertosRonda;
 
 	    // VISUALIZAR PROGRESO
-	    printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS), %i NUEVAS PERSONAS. POBLACION: %i, EDAD MEDIA: %i\n",
-	            diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, repuestas, pobActual, edadMedia);
+	    printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n",
+	            diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 
         if(contagiadosTotales == 0) break;
         if(pobActual == 0) break;
 	}
 
-//    printf("STATUS: Liberando memoria alocada...\n");
+    printf("STATUS: Liberando memoria alocada...\n");
 	// LIBERAR MEMORIA AL ACABAR PROGRAMA
 	free(personas);
     printf("STATUS: Fin del programa.\n");
