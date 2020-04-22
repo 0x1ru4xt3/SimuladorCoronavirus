@@ -122,4 +122,4 @@ perıodo de incubacion del virus que varıa entre 1 y 14 dıas siendo la media 5
 	
 
 Desarrollado con @iBiri99 
-@iBiri
+@iBiri99
