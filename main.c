@@ -1,14 +1,17 @@
-#include <mpi.h>
+//#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_rng.h>
+#include <sys/time.h>
 
 #define SEED      0
-#define ESCHEIGHT 15
-#define ESCWIDTH  15
-#define POBLACION 50
-#define RADIO     5
-#define PROBRADIO 0.3
+int ESCHEIGHT;
+int ESCWIDTH;
+int POBLACION;
+int RADIO;
+float PROBRADIO;
 
 // PROBABILIDADES POR EDAD
 #define EDAD1 0.004  // < 50
@@ -27,10 +30,46 @@ struct persona {
 	int vel[2];
 };
 
+//Calcular una edad entre 0 y 100
+int NumeroRandom() {
+    const gsl_rng_type * T;
+    gsl_rng * r;
+    gsl_rng_env_setup();
+    struct timeval tv; // Para que no salgan todo el rato los mismos valores se coge el tiempo actual y se utliza como seed,
+    gettimeofday(&tv,0);
+    unsigned long mySeed = tv.tv_sec + tv.tv_usec;
+    T = gsl_rng_default; // Generar el setup
+    r = gsl_rng_alloc (T);
+    gsl_rng_set(r, mySeed);
+    double u = gsl_rng_uniform(r); // el numero que genera es entre 0 y 1, multiplicamos por 100.
+    gsl_rng_free (r);
+    double aux=u*100;
+    int auxa=aux;
+    return auxa;
+
+}
+//Funcion para calcular un numero entre 0 y 1, con el cual veremos si muere o no.
+float calcProb(){
+    const gsl_rng_type * T;
+    gsl_rng * r;
+    gsl_rng_env_setup();
+    struct timeval tv; 
+    gettimeofday(&tv,0);
+    unsigned long mySeed = tv.tv_sec + tv.tv_usec;
+    T = gsl_rng_default; // Generar setup
+    r = gsl_rng_alloc (T);
+    gsl_rng_set(r, mySeed);
+    double u = gsl_rng_uniform(r); // Generar numero entre 0 y 1.
+    gsl_rng_free (r);
+    return (float)u;
+}
+
+
+
 // CREAR PERSONA
 struct persona crearPersona(){
 	struct persona per;
-	per.edad = 85; // Generar por probabilidad
+	per.edad = NumeroRandom(); // Generar por probabilidad
 	per.estado = 0;
 	per.diasContaminado = 0;
 
@@ -59,16 +98,16 @@ struct persona crearPersona(){
 int mediaEdad(struct persona *per, int pobl){
 	int i;
 	int media = 0;
-	for(i=0; i<pobl; i++)
+	for(i=0; i<pobl; i++){
 		media += per[i].edad;
-
+	}
 	return (media/pobl);
 }
 
 // FUNCION DE PROGRAMA PRINCIPAL
 int main(int argc, char** argv) {
-	if(argc!=2){
-		fprintf(stderr,"%s <tiempoASimular>\n", argv[0]);
+	if(argc!=7){
+		fprintf(stderr,"%s <tiempoASimular> <tamanoAncho> <tamanoAlto> <radio> <probRadio> <poblacion>\n", argv[0]);
 		exit(1);
 	}
 
@@ -77,12 +116,19 @@ int main(int argc, char** argv) {
     printf("STATUS: Inicializando array dinamico...\n");
 	// INICIALIZACIONES
 	struct persona *personas;
+	POBLACION=atoi(argv[6]);
+
     personas  = malloc(POBLACION*sizeof(struct persona));
 
     printf("STATUS: Inicializando variables...\n");
 	int tiempo = atoi(argv[1]);
+	ESCHEIGHT=atoi(argv[2]);
+	ESCWIDTH=atoi(argv[3]);
+	RADIO=atoi(argv[4]);
+	PROBRADIO=atof(argv[5]);
+	printf("\n Los datos dados son: TIEMPO %d,POBLACION: %d, ANCHURA: %d, ALTO: %d, RADIO: %d, PROB DEL RADIO: %f\n",tiempo, POBLACION,ESCHEIGHT,ESCWIDTH,RADIO,PROBRADIO);
 	int pobActual = POBLACION;
-    int rangox, rangoy;
+   	int rangox, rangoy;
 	int muertosRonda, curadosRonda, repuestas, edadMedia, contagiadosRonda;
 	int diasTranscurridos = 0;
 	int muertosTotales = 0;
@@ -91,10 +137,11 @@ int main(int argc, char** argv) {
 	float deci;
 	int i, e, j;
 
-    printf("STATUS: Creando población...\n");
+	printf("STATUS: Creando población...\n");
 	// CREAR POBLACION
 	for(i=0; i<POBLACION; i++)
 		personas[i] = crearPersona();
+
 	edadMedia = mediaEdad(personas, POBLACION);
 
     printf("STATUS: PRIMER INFECTADO!\n");
@@ -150,10 +197,10 @@ int main(int argc, char** argv) {
 						// SI ESTA DENTRO DEL RANGO DE EJE X
 						if(personas[e].pos[0] <= rangox+RADIO && personas[e].pos[0] >= rangox-RADIO){
 							// SI ESTA DENTRO DEL RANGO DE EJE Y
-							if(personas[e].pos[1] <= rangoy+RADIO && personas[e].pos[1] >= rangoy+RADIO){
+							if(personas[e].pos[1] <= rangoy+RADIO && personas[e].pos[1] >= rangoy-RADIO){
 								deci = (rand()%100) /100.0;
 								if(deci>PROBRADIO){
-                                    printf("STATUS: NUEVO CONTAGIO!\n");
+                                    					printf("STATUS: NUEVO CONTAGIO!\n");
 									personas[e].estado = 1;
 									contagiadosRonda++;
 								}
@@ -163,9 +210,10 @@ int main(int argc, char** argv) {
 				}
 
 				// DECIDIR SI SE MUERE O SE RECUPERA
-				deci = (rand()%100) /100;
-				if(deci >= personas[i].probMuerte){
-                    printf("STATUS: NUEVO FALLECIDO!\n");
+				deci = calcProb();
+				//printf("La probabilidad de que muera es: %f sobre %f\n",deci,personas[i].probMuerte);
+				if(deci <= personas[i].probMuerte){
+                    			printf("STATUS: NUEVO FALLECIDO!\n");
 					for(e=i; e<pobActual-1; e++)
 						personas[e] = personas[e+1];
 					muertosRonda++;
@@ -176,7 +224,7 @@ int main(int argc, char** argv) {
 					if(personas[i].estado == 1 && personas[i].diasContaminado >= 5){
 						personas[i].estado = 2;
 					} else if(personas[i].estado == 2 && personas[i].diasContaminado >= 15){
-                        printf("STATUS: NUEVO SUPERVIVIENTE!\n");
+                        			printf("STATUS: NUEVO SUPERVIVIENTE!\n");
 						personas[i].estado = 3;
 						curadosRonda++;
 						contagiadosTotales--;
