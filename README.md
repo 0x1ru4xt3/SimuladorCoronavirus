@@ -113,4 +113,9 @@ en base a los siguientes datos:
 una distribucion normal para modelar la edad de la poblacion. Otro ejemplo podrıa ser el modelado del
 perıodo de incubacion del virus que varıa entre 1 y 14 dıas siendo la media 5 o 6.
 
-
+### B. Puesta en marcha del programa
+   Para ejecutar el programa se le pasan como parámetro tiempo que se va a simular, tamaño del escenario (ancho y alto), el radio de contagio, la probabilidad de contagio dentro del radio y el número de personas que se tendrán en cuenta.
+	./main <tiempoASimular> <tamanoAncho> <tamanoAlto> <radio> <probRadio> <poblacion>
+	
+   El programa utiliza el paquete GSL (https://www.gnu.org/software/gsl/doc/html/), por lo que es necesario que el paquete esté instalado en el sistema. Para compilar con gcc:
+   	gcc main.c -o main -lgsl
