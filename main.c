@@ -7,11 +7,6 @@
 #include <sys/time.h>
 
 #define SEED      0
-int ESCHEIGHT;
-int ESCWIDTH;
-int POBLACION;
-int RADIO;
-float PROBRADIO;
 
 // PROBABILIDADES POR EDAD
 #define EDAD1 0.004  // < 50
@@ -112,30 +107,31 @@ int main(int argc, char** argv) {
 
 	srand(SEED);
 
-    printf("STATUS: Inicializando array dinamico...\n");
 	// INICIALIZACIONES
-	struct persona *personas;
-	POBLACION=atoi(argv[6]);
-
-    personas  = malloc(POBLACION*sizeof(struct persona));
-
     printf("STATUS: Inicializando variables...\n");
-	int tiempo = atoi(argv[1]);
-	ESCHEIGHT=atoi(argv[2]);
-	ESCWIDTH=atoi(argv[3]);
-	RADIO=atoi(argv[4]);
-	PROBRADIO=atof(argv[5]);
-	int pobActual = POBLACION;
+	int TIEMPO 		= atoi(argv[1]);
+	int ESCHEIGHT 	= atoi(argv[2]);
+	int ESCWIDTH 	= atoi(argv[3]);
+	int POBLACION	= atoi(argv[6]);
+	int RADIO		= atoi(argv[4]);
+	float PROBRADIO = atof(argv[5]);
+
    	int rangox, rangoy;
-	int muertosRonda, curadosRonda, repuestas, edadMedia, contagiadosRonda;
-	int diasTranscurridos = 0;
+	int muertosRonda, curadosRonda, edadMedia, contagiadosRonda;
 	int muertosTotales = 0;
 	int curadosTotales = 0;
 	int contagiadosTotales = 0;
+	int diasTranscurridos = 0;
+	int pobActual = POBLACION;
 	float deci;
 	int i, e, j;
 
-	printf("\n Los datos dados son: TIEMPO %d,POBLACION: %d, ANCHURA: %d, ALTO: %d, RADIO: %d, PROB DEL RADIO: %f\n",tiempo, POBLACION,ESCHEIGHT,ESCWIDTH,RADIO,PROBRADIO);
+	struct persona *personas;
+    personas  = malloc(POBLACION*sizeof(struct persona));
+
+	printf("STATUS: DATOS INTRODUCIDOS: TIEMPO %d, POBLACION: %d, ANCHO ESC: %d, ALTO_ESC: %d, RADIO CONTAGIO: %d, PROB DE CONTAGIO RADIO: %f\n",
+			tiempo, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
+
 	printf("STATUS: Creando población...\n");
 	// CREAR POBLACION
 	for(i=0; i<POBLACION; i++)
@@ -155,7 +151,6 @@ int main(int argc, char** argv) {
 		muertosRonda = 0;
 		curadosRonda = 0;
 		contagiadosRonda = 0;
-		repuestas = 0;
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 		for(i=0; i<pobActual; i++){
@@ -198,7 +193,6 @@ int main(int argc, char** argv) {
 							if(personas[e].pos[1] <= rangoy+RADIO && personas[e].pos[1] >= rangoy-RADIO){
 								deci = (rand()%100) /100.0;
 								if(deci>PROBRADIO){
-//                                    					printf("STATUS: NUEVO CONTAGIO!\n");
 									personas[e].estado = 1;
 									contagiadosRonda++;
 								}
@@ -210,7 +204,6 @@ int main(int argc, char** argv) {
 				// DECIDIR SI SE MUERE O SE RECUPERA
 				deci = calcProb();
 				if(deci <= personas[i].probMuerte){
-//                    			printf("STATUS: NUEVO FALLECIDO!\n");
 					for(e=i; e<pobActual-1; e++)
 						personas[e] = personas[e+1];
 					muertosRonda++;
@@ -221,7 +214,6 @@ int main(int argc, char** argv) {
 					if(personas[i].estado == 1 && personas[i].diasContaminado >= 5){
 						personas[i].estado = 2;
 					} else if(personas[i].estado == 2 && personas[i].diasContaminado >= 15){
-//                        			printf("STATUS: NUEVO SUPERVIVIENTE!\n");
 						personas[i].estado = 3;
 						curadosRonda++;
 						contagiadosTotales--;
@@ -245,6 +237,7 @@ int main(int argc, char** argv) {
 	    printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n",
 	            diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 
+		// CONTROLAR SI SE DEBE FINALIZAR EL PROGRAMA
         if(contagiadosTotales == 0) break;
         if(pobActual == 0) break;
 	}
