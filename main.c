@@ -15,6 +15,15 @@
 #define EDAD4 0.080  // 70 - 80
 #define EDAD5 0.148  // > 80
 
+int TIEMPO 	= atoi(argv[1]);
+int ESCHEIGHT 	= atoi(argv[2]);
+int ESCWIDTH 	= atoi(argv[3]);
+int RADIO	= atoi(argv[4]);
+float PROBRADIO = atof(argv[5]);
+int POBLACION	= atoi(argv[6]);
+int EDADMEDIA	= atoi(argv[7]);
+int BATX	= atoi(argv[8]);
+
 // OBJETO PERSONA
 struct persona {
 	int edad;
@@ -26,7 +35,7 @@ struct persona {
 };
 
 //Calcular una edad entre 0 y 100
-int NumeroRandom() {
+int numeroRandom(int medEdad) {
     const gsl_rng_type * T;
     gsl_rng * r;
     gsl_rng_env_setup();
@@ -36,7 +45,7 @@ int NumeroRandom() {
     T = gsl_rng_default; // Generar el setup
     r = gsl_rng_alloc (T);
     gsl_rng_set(r, mySeed);
-    double u = gsl_rng_uniform(r); // el numero que genera es entre 0 y 1, multiplicamos por 100.
+    double u = gsl_rng_uniform(r); // ! He creado la variable medEdad que es la metida como parametro al programa// el numero que genera es entre 0 y 1, multiplicamos por 100.
     gsl_rng_free (r);
     double aux=u*100;
     int auxa=aux;
@@ -63,7 +72,7 @@ float calcProb(){
 // CREAR PERSONA
 struct persona crearPersona(){
 	struct persona per;
-	per.edad = NumeroRandom();
+	per.edad = numeroRandom();
 	per.estado = 0;
 	per.diasContaminado = 0;
 
@@ -100,8 +109,15 @@ int mediaEdad(struct persona *per, int pobl){
 
 // FUNCION DE PROGRAMA PRINCIPAL
 int main(int argc, char** argv) {
-	if(argc!=7){
-		fprintf(stderr,"%s <tiempoASimular> <tamanoAncho> <tamanoAlto> <radio> <probRadio> <poblacion>\n", argv[0]);
+	if(argc!=9) {
+		fprintf(stderr,"%s <tiempoASimular> <tamanoAncho> <tamanoAlto> <radio> <probRadio> <poblacion> <edadMedia> <batch>\n", argv[0]);
+		exit(1);
+	} else if (probRadio > 0.9 || probRadio < 0 || tiempoASimular < batch || tiempoASimular < 1 || radio >= tamanoAncho || radio >= tamanoAlto) {
+                printf(stderr,"Error de parámetros: \n
+			\t- La probabilidad de contagio debe estar comprendido entre 0 y 1.\n
+                        \t- El tiempo a simular debe ser mayor que 1.\n
+                        \t- El batch no puede ser mayor que el tiempo a simular.\n
+                        \t- El radio de contagio debe ser menor que el tamaño del lienzo.\n");
 		exit(1);
 	}
 
@@ -109,15 +125,9 @@ int main(int argc, char** argv) {
 
 	// INICIALIZACIONES
     printf("STATUS: Inicializando variables...\n");
-	int TIEMPO 		= atoi(argv[1]);
-	int ESCHEIGHT 	= atoi(argv[2]);
-	int ESCWIDTH 	= atoi(argv[3]);
-	int POBLACION	= atoi(argv[6]);
-	int RADIO		= atoi(argv[4]);
-	float PROBRADIO = atof(argv[5]);
 
    	int rangox, rangoy;
-	int muertosRonda, curadosRonda, edadMedia, contagiadosRonda;
+	int muertosRonda, curadosRonda, contagiadosRonda;
 	int muertosTotales = 0;
 	int curadosTotales = 0;
 	int contagiadosTotales = 0;
@@ -147,7 +157,7 @@ int main(int argc, char** argv) {
 
     printf("STATUS: Iniciando programa...\n");
 	// BUCLE PRINCIPAL
-	while(diasTranscurridos <= tiempo) {
+	while(diasTranscurridos < tiempo) {
 		muertosRonda = 0;
 		curadosRonda = 0;
 		contagiadosRonda = 0;
