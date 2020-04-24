@@ -15,14 +15,14 @@
 #define EDAD4 0.080  // 70 - 80
 #define EDAD5 0.148  // > 80
 
-int TIEMPO 	= atoi(argv[1]);
-int ESCHEIGHT 	= atoi(argv[2]);
-int ESCWIDTH 	= atoi(argv[3]);
-int RADIO	= atoi(argv[4]);
-float PROBRADIO = atof(argv[5]);
-int POBLACION	= atoi(argv[6]);
-int EDADMEDIA	= atoi(argv[7]);
-int BATX	= atoi(argv[8]);
+int TIEMPO;
+int ESCHEIGHT;
+int ESCWIDTH;
+int RADIO;
+float PROBRADIO;
+int POBLACION;
+int EDADMEDIA;
+int BATX;
 
 // OBJETO PERSONA
 struct persona {
@@ -72,7 +72,7 @@ float calcProb(){
 // CREAR PERSONA
 struct persona crearPersona(){
 	struct persona per;
-	per.edad = numeroRandom();
+	per.edad = numeroRandom(EDADMEDIA);
 	per.estado = 0;
 	per.diasContaminado = 0;
 
@@ -112,12 +112,18 @@ int main(int argc, char** argv) {
 	if(argc!=9) {
 		fprintf(stderr,"%s <tiempoASimular> <tamanoAncho> <tamanoAlto> <radio> <probRadio> <poblacion> <edadMedia> <batch>\n", argv[0]);
 		exit(1);
-	} else if (probRadio > 0.9 || probRadio < 0 || tiempoASimular < batch || tiempoASimular < 1 || radio >= tamanoAncho || radio >= tamanoAlto) {
-                printf(stderr,"Error de parámetros: \n
-			\t- La probabilidad de contagio debe estar comprendido entre 0 y 1.\n
-                        \t- El tiempo a simular debe ser mayor que 1.\n
-                        \t- El batch no puede ser mayor que el tiempo a simular.\n
-                        \t- El radio de contagio debe ser menor que el tamaño del lienzo.\n");
+	}
+	TIEMPO = atoi(argv[1]);
+	ESCHEIGHT = atoi(argv[2]);
+	ESCWIDTH = atoi(argv[3]);
+	RADIO = atoi(argv[4]);
+	PROBRADIO = atof(argv[5]);
+	POBLACION = atoi(argv[6]);
+	EDADMEDIA = atoi(argv[7]);
+	BATX = atoi(argv[8]);
+
+	if (PROBRADIO > 0.9 || PROBRADIO < 0 || TIEMPO < BATX || TIEMPO < 1 || RADIO >= ESCWIDTH || RADIO >= ESCHEIGHT) {
+                fprintf(stderr,"Error de parámetros: \n\t- La probabilidad de contagio debe estar comprendido entre 0 y 1.\n\t- El tiempo a simular debe ser mayor que 1.\n\t- El batch no puede ser mayor que el tiempo a simular.\n\t- El radio de contagio debe ser menor que el tamaño del lienzo.\n");
 		exit(1);
 	}
 
@@ -133,22 +139,25 @@ int main(int argc, char** argv) {
 	int contagiadosTotales = 0;
 	int diasTranscurridos = 0;
 	int pobActual = POBLACION;
+	int edadMedia;
 	float deci;
 	int i, e, j;
-
+	FILE *dias, *posic;
+	posic=fopen("historialposic.txt","w+");
+	dias=fopen("historialdias.txt", "w+");
 	struct persona *personas;
     personas  = malloc(POBLACION*sizeof(struct persona));
 
 	printf("STATUS: DATOS INTRODUCIDOS: TIEMPO %d, POBLACION: %d, ANCHO ESC: %d, ALTO_ESC: %d, RADIO CONTAGIO: %d, PROB DE CONTAGIO RADIO: %f\n",
-			tiempo, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
+			TIEMPO, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
 
 	printf("STATUS: Creando población...\n");
 	// CREAR POBLACION
 	for(i=0; i<POBLACION; i++)
 		personas[i] = crearPersona();
 
-	edadMedia = mediaEdad(personas, POBLACION);
-
+	//edadMedia = mediaEdad(personas, POBLACION); SEGUN entiendo esto no hace falta ya no? Si metemos por parametro la edad media...
+	edadMedia=EDADMEDIA;
     printf("STATUS: PRIMER INFECTADO!\n");
 	// PRIMER INFECTADO!
 	int aux = rand()%POBLACION;
@@ -157,7 +166,7 @@ int main(int argc, char** argv) {
 
     printf("STATUS: Iniciando programa...\n");
 	// BUCLE PRINCIPAL
-	while(diasTranscurridos < tiempo) {
+	while(diasTranscurridos < TIEMPO) {
 		muertosRonda = 0;
 		curadosRonda = 0;
 		contagiadosRonda = 0;
@@ -185,8 +194,12 @@ int main(int argc, char** argv) {
 				personas[i].pos[1] += personas[i].vel[1]; //Movimiento en el otro eje
 				personas[i].vel[1] = rand()%10+(-5);
 			}
-
+			if(diasTranscurridos%BATX==0)
+				fprintf(posic,"%d,%d,%d:",personas[i].pos[0],personas[i].pos[1],personas[i].estado);
         }
+
+	if(diasTranscurridos%BATX==0)
+		fprintf(posic,"\n");
 
     	// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
         for(i=0; i<pobActual; i++){
@@ -242,7 +255,9 @@ int main(int argc, char** argv) {
 		contagiadosTotales += contagiadosRonda;
 		curadosTotales += curadosRonda;
 	    muertosTotales += muertosRonda;
-
+	   if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
+		 fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
+	   }
 	    // VISUALIZAR PROGRESO
 	    printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n",
 	            diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
@@ -255,5 +270,8 @@ int main(int argc, char** argv) {
     printf("STATUS: Liberando memoria alocada...\n");
 	// LIBERAR MEMORIA AL ACABAR PROGRAMA
 	free(personas);
+	fclose(dias);
+	fclose(posic);
     printf("STATUS: Fin del programa.\n");
+
 }
