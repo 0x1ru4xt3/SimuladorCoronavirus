@@ -5,34 +5,9 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_rng.h>
 #include <sys/time.h>
+#include "persona.h"
 
 #define SEED      0
-
-// PROBABILIDADES POR EDAD
-#define EDAD1 0.004  // < 50
-#define EDAD2 0.013  // 50 - 60
-#define EDAD3 0.036  // 60 - 70
-#define EDAD4 0.080  // 70 - 80
-#define EDAD5 0.148  // > 80
-
-int TIEMPO;
-int ESCHEIGHT;
-int ESCWIDTH;
-int RADIO;
-float PROBRADIO;
-int POBLACION;
-int EDADMEDIA;
-int BATX;
-
-// OBJETO PERSONA
-struct persona {
-	int edad;
-	int estado;
-	int diasContaminado;
-	float probMuerte;
-	int pos[2];
-	int vel[2];
-};
 
 // CALCULAR UNA EDAD ENTRE 0 y 100
 // (Par: int edad media de la poblacion)
@@ -68,103 +43,6 @@ float calcProb(){
     double u = gsl_rng_uniform(r); // Generar numero entre 0 y 1.
     gsl_rng_free (r);
     return (float)u;
-}
-
-// CREAR PERSONA
-struct persona crearPersona(){
-	struct persona per;
-	per.edad = numeroRandom(EDADMEDIA);
-	per.estado = 0;
-	per.diasContaminado = 0;
-
-	// PROBABILIDAD DE MUERTE EN BASE A EDAD
-	if(per.edad<50)
-		per.probMuerte = EDAD1;
-	else if(per.edad>=50 && per.edad<60)
-		per.probMuerte = EDAD2;
-	else if(per.edad>=60 && per.edad<70)
-		per.probMuerte = EDAD3;
-	else if(per.edad>=80 && per.edad<80)
-		per.probMuerte = EDAD4;
-	else
-		per.probMuerte = EDAD5;
-
-	//CALCULO DE LA POSICION y VELOCIDAD INICIAL
-	per.pos[0] = rand()%ESCHEIGHT;
-	per.pos[1] = rand()%ESCWIDTH;
-	per.vel[0] = rand()%10+(-5);
-	per.vel[1] = rand()%10+(-5);
-
-	return per;
-}
-
-// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
-// (Par: struct persona)
-void moverPersona(struct persona pers){
-	// SE CONTROLA PRIMERO UN EJE, DESPUES EL OTRO, SE CONTROLA
-	// QUE NO SE SALGA DE LOS LIMITES DEL ESCENARIO, Y SE ELIGE
-	// LA VELOCIDAD DE LA SIGUIENT RONDA EN BASE A SU POSICION:
-	// SI ESTA EN EL BORDE REBOTA, SI NO SE MUEVE LIBREMENTE :)
-
-	if(pers.pos[0] + pers.vel[0] >= ESCHEIGHT){
-		pers.pos[0] = ESCHEIGHT;
-		pers.vel[0] = rand()%5+(-5);
-	} else if(pers.pos[0] + pers.vel[0] <= 0){
-		pers.pos[0] = 0;
-		pers.vel[0] = rand()%5;
-	} else {
-		pers.pos[0] += pers.vel[0];
-		pers.vel[0] = rand()%10+(-5);
-	}
-
-	if(pers.pos[1] + pers.vel[1] >= ESCWIDTH){
-		pers.pos[1] = ESCWIDTH;
-		pers.vel[1] = rand()%5+(-5);
-	} else if(pers.pos[1] + pers.vel[0] <= 0){
-		pers.pos[1] = 0;
-		pers.vel[1] = rand()%5;
-	} else {
-		pers.pos[1] += pers.vel[1];
-		pers.vel[1] = rand()%10+(-5);
-	}
-}
-
-// DECISION DE INFECTAR UNA PERSONA por RADIO DE CONTAGIADO
-// (Par: struct persona, ints radio del infectado)
-int infecPersona(struct persona per, int rangox, int rangoy){
-	// SI NO ESTA INFECTADO y NO LO HA ESTADO
-	if(per.estado == 0){
-		// SI ESTA DENTRO DEL RANGO DE EJE X DEL INFECTADO
-		if(per.pos[0] <= rangox+RADIO && per.pos[0] >= rangox-RADIO){
-			// SI ESTA DENTRO DEL RANGO DE EJE Y DEL INFECTADO
-			if(per.pos[1] <= rangoy+RADIO && per.pos[1] >= rangoy-RADIO){
-				float deci = (rand()%100) /100.0;
-				if(deci>PROBRADIO){
-					per.estado = 1;
-					return 1;
-				}
-			}
-		}
-	}
-	return 0;
-}
-
-// DECISION DE MUERTE DE UNA PERSONA
-// (Par: struct persona)
-int matarPersona(struct persona per){
-	float deci = calcProb();
-	if(deci <= per.probMuerte)
-		return 0;
-	else {
-		per.diasContaminado++;
-		if(per.estado == 1 && per.diasContaminado >= 5){
-			per.estado = 2;
-			return 1;
-		} else if(per.estado == 2 && per.diasContaminado >= 15){
-			per.estado = 3;
-			return 2;
-		}
-	}
 }
 
 // CALCULAR LA MEDIA DE EDAD
@@ -223,19 +101,20 @@ int main(int argc, char** argv) {
     personas  = malloc(POBLACION*sizeof(struct persona));
 
 	// IMPRESION DE VARIABLES INTRODUCIDAS POR PARAMETRO
-	printf("STATUS: DATOS INTRODUCIDOS: \n\tTIEMPO %d\n\t POBLACION: %d\n\tANCHO ESC: %d  ALTO_ESC: %d\n\tRADIO CONTAGIO: %d  PROB DE CONTAGIO RADIO: %f\n",
+	printf("STATUS: DATOS INTRODUCIDOS: \n\tTIEMPO %d\n\tPOBLACION: %d\n\tANCHO ESC: %d  ALTO_ESC: %d\n\tRADIO CONTAGIO: %d  PROB DE CONTAGIO RADIO: %f\n",
 			TIEMPO, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
 
 	// CREAR POBLACION
 	printf("STATUS: Creando población...\n");
 	for(i=0; i<POBLACION; i++)
-		personas[i] = crearPersona();
+		personas[i] = crearPersona(EDADMEDIA, ESCWIDTH, ESCHEIGHT);
 
 	// PRIMER INFECTADO!
 	printf("STATUS: PRIMER INFECTADO!\n");
 	int aux = rand()%POBLACION;
 	personas[aux].estado = 1;
 	contagiadosTotales++;
+
 
 	// BUCLE PRINCIPAL
 	printf("STATUS: Iniciando programa...\n");
@@ -246,7 +125,7 @@ int main(int argc, char** argv) {
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 		for(i=0; i<pobActual; i++){
-			moverPersona(personas[i]);
+			moverPersona(personas[i], ESCWIDTH, ESCHEIGHT);
 			// FICHERO: GUARDAR CAMBIO DE PERSONA
 			if(diasTranscurridos%BATX==0)
 				fprintf(posic,"%d,%d,%d:",personas[i].pos[0],personas[i].pos[1],personas[i].estado);
@@ -263,7 +142,7 @@ int main(int argc, char** argv) {
 
 				// DECIDIR SI SE CONTAGIA CADA INDIVIDUO EN BASE AL RADIO DE UN CONTAGIADO
 				for(e=0; e<pobActual; e++)
-					contagiadosRonda += infecPersona(personas[e], rangox, rangoy);
+					contagiadosRonda += infecPersona(personas[e], rangox, rangoy, RADIO, PROBRADIO);
 
 				// DECIDIR SI SE MUERE O SE RECUPERA
 				if(matarPersona(personas[i]) == 0){			// SE MUERE
