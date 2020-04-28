@@ -34,7 +34,8 @@ struct persona {
 	int vel[2];
 };
 
-//Calcular una edad entre 0 y 100
+// CALCULAR UNA EDAD ENTRE 0 y 100
+// (Par: int edad media de la poblacion)
 int numeroRandom(int medEdad) {
     const gsl_rng_type * T;
     gsl_rng * r;
@@ -53,7 +54,7 @@ int numeroRandom(int medEdad) {
 
 }
 
-//Funcion para calcular un numero entre 0 y 1, con el cual veremos si muere o no.
+// CALCULAR NUMERO ENTRE 0 y 1 (DECISION DE MUERTE)
 float calcProb(){
     const gsl_rng_type * T;
     gsl_rng * r;
@@ -97,7 +98,77 @@ struct persona crearPersona(){
 	return per;
 }
 
+// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
+// (Par: struct persona)
+void moverPersona(struct persona pers){
+	// SE CONTROLA PRIMERO UN EJE, DESPUES EL OTRO, SE CONTROLA
+	// QUE NO SE SALGA DE LOS LIMITES DEL ESCENARIO, Y SE ELIGE
+	// LA VELOCIDAD DE LA SIGUIENT RONDA EN BASE A SU POSICION:
+	// SI ESTA EN EL BORDE REBOTA, SI NO SE MUEVE LIBREMENTE :)
+
+	if(pers.pos[0] + pers.vel[0] >= ESCHEIGHT){
+		pers.pos[0] = ESCHEIGHT;
+		pers.vel[0] = rand()%5+(-5);
+	} else if(pers.pos[0] + pers.vel[0] <= 0){
+		pers.pos[0] = 0;
+		pers.vel[0] = rand()%5;
+	} else {
+		pers.pos[0] += pers.vel[0];
+		pers.vel[0] = rand()%10+(-5);
+	}
+
+	if(pers.pos[1] + pers.vel[1] >= ESCWIDTH){
+		pers.pos[1] = ESCWIDTH;
+		pers.vel[1] = rand()%5+(-5);
+	} else if(pers.pos[1] + pers.vel[0] <= 0){
+		pers.pos[1] = 0;
+		pers.vel[1] = rand()%5;
+	} else {
+		pers.pos[1] += pers.vel[1];
+		pers.vel[1] = rand()%10+(-5);
+	}
+}
+
+// DECISION DE INFECTAR UNA PERSONA por RADIO DE CONTAGIADO
+// (Par: struct persona, ints radio del infectado)
+int infecPersona(struct persona per, int rangox, int rangoy){
+	// SI NO ESTA INFECTADO y NO LO HA ESTADO
+	if(per.estado == 0){
+		// SI ESTA DENTRO DEL RANGO DE EJE X DEL INFECTADO
+		if(per.pos[0] <= rangox+RADIO && per.pos[0] >= rangox-RADIO){
+			// SI ESTA DENTRO DEL RANGO DE EJE Y DEL INFECTADO
+			if(per.pos[1] <= rangoy+RADIO && per.pos[1] >= rangoy-RADIO){
+				float deci = (rand()%100) /100.0;
+				if(deci>PROBRADIO){
+					per.estado = 1;
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+// DECISION DE MUERTE DE UNA PERSONA
+// (Par: struct persona)
+int matarPersona(struct persona per){
+	float deci = calcProb();
+	if(deci <= per.probMuerte)
+		return 0;
+	else {
+		per.diasContaminado++;
+		if(per.estado == 1 && per.diasContaminado >= 5){
+			per.estado = 2;
+			return 1;
+		} else if(per.estado == 2 && per.diasContaminado >= 15){
+			per.estado = 3;
+			return 2;
+		}
+	}
+}
+
 // CALCULAR LA MEDIA DE EDAD
+// (Par: struct persona, int poblacion actual)
 int mediaEdad(struct persona *per, int pobl){
 	int i;
 	int media = 0;
@@ -110,28 +181,29 @@ int mediaEdad(struct persona *per, int pobl){
 // FUNCION DE PROGRAMA PRINCIPAL
 int main(int argc, char** argv) {
 	if(argc!=9) {
-		fprintf(stderr,"%s <tiempoASimular> <tamanoAncho> <tamanoAlto> <radio> <probRadio> <poblacion> <edadMedia> <batch>\n", argv[0]);
+		fprintf(stderr,"Funcionamiento: %s <tiempoASimular> <tamanoAncho> <tamanoAlto> <radio> <probRadio> <poblacion> <edadMedia> <batch>\n", argv[0]);
 		exit(1);
 	}
-	TIEMPO = atoi(argv[1]);
-	ESCHEIGHT = atoi(argv[2]);
-	ESCWIDTH = atoi(argv[3]);
-	RADIO = atoi(argv[4]);
-	PROBRADIO = atof(argv[5]);
-	POBLACION = atoi(argv[6]);
-	EDADMEDIA = atoi(argv[7]);
-	BATX = atoi(argv[8]);
+
+	TIEMPO 		= atoi(argv[1]);
+	ESCHEIGHT 	= atoi(argv[2]);
+	ESCWIDTH 	= atoi(argv[3]);
+	RADIO 		= atoi(argv[4]);
+	PROBRADIO 	= atof(argv[5]);
+	POBLACION 	= atoi(argv[6]);
+	EDADMEDIA 	= atoi(argv[7]);
+	BATX 		= atoi(argv[8]);
 
 	if (PROBRADIO > 0.9 || PROBRADIO < 0 || TIEMPO < BATX || TIEMPO < 1 || RADIO >= ESCWIDTH || RADIO >= ESCHEIGHT) {
-                fprintf(stderr,"Error de parámetros: \n\t- La probabilidad de contagio debe estar comprendido entre 0 y 1.\n\t- El tiempo a simular debe ser mayor que 1.\n\t- El batch no puede ser mayor que el tiempo a simular.\n\t- El radio de contagio debe ser menor que el tamaño del lienzo.\n");
+        fprintf(stderr,"Error de parámetros: \n\t- La probabilidad de contagio debe estar comprendido entre 0 y 1.\n\t- El tiempo a simular debe ser mayor que 1.\n\t- El batch no puede ser mayor que el tiempo a simular.\n\t- El radio de contagio debe ser menor que el tamaino del lienzo.\n");
 		exit(1);
 	}
 
 	srand(SEED);
 
-	// INICIALIZACIONES
+	// INICIALIZACIONES VARIABLES
     printf("STATUS: Inicializando variables...\n");
-
+	int i, e, j;
    	int rangox, rangoy;
 	int muertosRonda, curadosRonda, contagiadosRonda;
 	int muertosTotales = 0;
@@ -139,33 +211,34 @@ int main(int argc, char** argv) {
 	int contagiadosTotales = 0;
 	int diasTranscurridos = 0;
 	int pobActual = POBLACION;
-	int edadMedia;
-	float deci;
-	int i, e, j;
+	int edadMedia = EDADMEDIA;
+
+	// INICIALIZACION FICHEROS
 	FILE *dias, *posic;
 	posic=fopen("historialposic.txt","w+");
 	dias=fopen("historialdias.txt", "w+");
+
+	// INICIALIZACION ARRAY PERSONAS
 	struct persona *personas;
     personas  = malloc(POBLACION*sizeof(struct persona));
 
-	printf("STATUS: DATOS INTRODUCIDOS: TIEMPO %d, POBLACION: %d, ANCHO ESC: %d, ALTO_ESC: %d, RADIO CONTAGIO: %d, PROB DE CONTAGIO RADIO: %f\n",
+	// IMPRESION DE VARIABLES INTRODUCIDAS POR PARAMETRO
+	printf("STATUS: DATOS INTRODUCIDOS: \n\tTIEMPO %d\n\t POBLACION: %d\n\tANCHO ESC: %d  ALTO_ESC: %d\n\tRADIO CONTAGIO: %d  PROB DE CONTAGIO RADIO: %f\n",
 			TIEMPO, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
 
-	printf("STATUS: Creando población...\n");
 	// CREAR POBLACION
+	printf("STATUS: Creando población...\n");
 	for(i=0; i<POBLACION; i++)
 		personas[i] = crearPersona();
 
-	//edadMedia = mediaEdad(personas, POBLACION); SEGUN entiendo esto no hace falta ya no? Si metemos por parametro la edad media...
-	edadMedia=EDADMEDIA;
-    printf("STATUS: PRIMER INFECTADO!\n");
 	// PRIMER INFECTADO!
+	printf("STATUS: PRIMER INFECTADO!\n");
 	int aux = rand()%POBLACION;
 	personas[aux].estado = 1;
 	contagiadosTotales++;
 
-    printf("STATUS: Iniciando programa...\n");
 	// BUCLE PRINCIPAL
+	printf("STATUS: Iniciando programa...\n");
 	while(diasTranscurridos < TIEMPO) {
 		muertosRonda = 0;
 		curadosRonda = 0;
@@ -173,33 +246,14 @@ int main(int argc, char** argv) {
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 		for(i=0; i<pobActual; i++){
-			if(personas[i].pos[0] + personas[i].vel[0] >= ESCHEIGHT){
-				personas[i].pos[0] = ESCHEIGHT;	// Ha llegado al limite
-				personas[i].vel[0] = rand()%5+(-5);
-			} else if(personas[i].pos[0] + personas[i].vel[0] <= 0){
-				personas[i].pos[0] = 0;			// Ha llegado al limite
-				personas[i].vel[0] = rand()%5;
-			} else {
-				personas[i].pos[0] += personas[i].vel[0]; //Movimiento en uno de los ejes
-				personas[i].vel[0] = rand()%10+(-5);
-			}
-
-			if(personas[i].pos[1] + personas[i].vel[1] >= ESCWIDTH){
-				personas[i].pos[1] = ESCWIDTH; 	// Ha llegado al limite.
-				personas[i].vel[1] = rand()%5+(-5);
-			} else if(personas[i].pos[1] + personas[i].vel[0] <= 0){
-				personas[i].pos[1] = 0;			// Ha llegado al limite.
-				personas[i].vel[1] = rand()%5;
-			} else {
-				personas[i].pos[1] += personas[i].vel[1]; //Movimiento en el otro eje
-				personas[i].vel[1] = rand()%10+(-5);
-			}
+			moverPersona(personas[i]);
+			// FICHERO: GUARDAR CAMBIO DE PERSONA
 			if(diasTranscurridos%BATX==0)
 				fprintf(posic,"%d,%d,%d:",personas[i].pos[0],personas[i].pos[1],personas[i].estado);
         }
-
-	if(diasTranscurridos%BATX==0)
-		fprintf(posic,"\n");
+		// FICHERO: SALTAR DE LINEA TRAS MOVER TODAS LAS PERSONAS
+		if(diasTranscurridos%BATX==0)
+			fprintf(posic,"\n");
 
     	// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
         for(i=0; i<pobActual; i++){
@@ -207,40 +261,20 @@ int main(int argc, char** argv) {
 				rangox = personas[i].pos[0];
 				rangoy = personas[i].pos[1];
 
-				for(e=0; e<pobActual; e++){
-					// SI NO ESTA INFECTADO y NO LO HA ESTADO
-					if(personas[e].estado == 0){
-						// SI ESTA DENTRO DEL RANGO DE EJE X
-						if(personas[e].pos[0] <= rangox+RADIO && personas[e].pos[0] >= rangox-RADIO){
-							// SI ESTA DENTRO DEL RANGO DE EJE Y
-							if(personas[e].pos[1] <= rangoy+RADIO && personas[e].pos[1] >= rangoy-RADIO){
-								deci = (rand()%100) /100.0;
-								if(deci>PROBRADIO){
-									personas[e].estado = 1;
-									contagiadosRonda++;
-								}
-							}
-						}
-					}
-				}
+				// DECIDIR SI SE CONTAGIA CADA INDIVIDUO EN BASE AL RADIO DE UN CONTAGIADO
+				for(e=0; e<pobActual; e++)
+					contagiadosRonda += infecPersona(personas[e], rangox, rangoy);
 
 				// DECIDIR SI SE MUERE O SE RECUPERA
-				deci = calcProb();
-				if(deci <= personas[i].probMuerte){
+				if(matarPersona(personas[i]) == 0){			// SE MUERE
 					for(e=i; e<pobActual-1; e++)
 						personas[e] = personas[e+1];
 					muertosRonda++;
 					contagiadosTotales--;
 					pobActual--;
-				} else {
-					personas[i].diasContaminado++;
-					if(personas[i].estado == 1 && personas[i].diasContaminado >= 5){
-						personas[i].estado = 2;
-					} else if(personas[i].estado == 2 && personas[i].diasContaminado >= 15){
-						personas[i].estado = 3;
-						curadosRonda++;
-						contagiadosTotales--;
-					}
+				} else if(matarPersona(personas[i]) == 2){	// SE CURA
+					curadosRonda++;
+					contagiadosTotales--;
 				}
 	        }
 		}
@@ -248,16 +282,17 @@ int main(int argc, char** argv) {
 		// ACTUALIZAR EDAD MEDIA
 		edadMedia = mediaEdad(personas, pobActual);
 
-		// RULAR TIEMPO
-		diasTranscurridos++;
-
 	    // ACTUALIZAR VALORES TOTALES
 		contagiadosTotales += contagiadosRonda;
 		curadosTotales += curadosRonda;
-	    muertosTotales += muertosRonda;
-	   if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
-		 fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
-	   }
+		muertosTotales += muertosRonda;
+	   	if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
+			fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
+		}
+
+		// RULAR TIEMPO
+		diasTranscurridos++;
+
 	    // VISUALIZAR PROGRESO
 	    printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n",
 	            diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
@@ -267,8 +302,8 @@ int main(int argc, char** argv) {
         if(pobActual == 0) break;
 	}
 
-    printf("STATUS: Liberando memoria alocada...\n");
-	// LIBERAR MEMORIA AL ACABAR PROGRAMA
+	// LIBERAR MEMORIA y CERRAR ARCHIVOS AL ACABAR PROGRAMA
+	printf("STATUS: Liberando memoria alocada...\n");
 	free(personas);
 	fclose(dias);
 	fclose(posic);
