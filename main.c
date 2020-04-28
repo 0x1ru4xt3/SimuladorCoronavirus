@@ -1,49 +1,9 @@
 //#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_rng.h>
-#include <sys/time.h>
 #include "persona.h"
 
-#define SEED      0
-
-// CALCULAR UNA EDAD ENTRE 0 y 100
-// (Par: int edad media de la poblacion)
-int numeroRandom(int medEdad) {
-    const gsl_rng_type * T;
-    gsl_rng * r;
-    gsl_rng_env_setup();
-    struct timeval tv; // Para que no salgan todo el rato los mismos valores se coge el tiempo actual y se utliza como seed,
-    gettimeofday(&tv,0);
-    unsigned long mySeed = tv.tv_sec + tv.tv_usec;
-    T = gsl_rng_default; // Generar el setup
-    r = gsl_rng_alloc (T);
-    gsl_rng_set(r, mySeed);
-    double u = gsl_rng_uniform(r); // ! He creado la variable medEdad que es la metida como parametro al programa// el numero que genera es entre 0 y 1, multiplicamos por 100.
-    gsl_rng_free (r);
-    double aux=u*100;
-    int auxa=aux;
-    return auxa;
-
-}
-
-// CALCULAR NUMERO ENTRE 0 y 1 (DECISION DE MUERTE)
-float calcProb(){
-    const gsl_rng_type * T;
-    gsl_rng * r;
-    gsl_rng_env_setup();
-    struct timeval tv;
-    gettimeofday(&tv,0);
-    unsigned long mySeed = tv.tv_sec + tv.tv_usec;
-    T = gsl_rng_default; // Generar setup
-    r = gsl_rng_alloc (T);
-    gsl_rng_set(r, mySeed);
-    double u = gsl_rng_uniform(r); // Generar numero entre 0 y 1.
-    gsl_rng_free (r);
-    return (float)u;
-}
+#define SEED 0
 
 // CALCULAR LA MEDIA DE EDAD
 // (Par: struct persona, int poblacion actual)
@@ -63,14 +23,14 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-	TIEMPO 		= atoi(argv[1]);
-	ESCHEIGHT 	= atoi(argv[2]);
-	ESCWIDTH 	= atoi(argv[3]);
-	RADIO 		= atoi(argv[4]);
-	PROBRADIO 	= atof(argv[5]);
-	POBLACION 	= atoi(argv[6]);
-	EDADMEDIA 	= atoi(argv[7]);
-	BATX 		= atoi(argv[8]);
+	int TIEMPO 		= atoi(argv[1]);
+	int ESCHEIGHT 	= atoi(argv[2]);
+	int ESCWIDTH 	= atoi(argv[3]);
+	int RADIO 		= atoi(argv[4]);
+	float PROBRADIO = atof(argv[5]);
+	int POBLACION 	= atoi(argv[6]);
+	int EDADMEDIA 	= atoi(argv[7]);
+	int BATX 		= atoi(argv[8]);
 
 	if (PROBRADIO > 0.9 || PROBRADIO < 0 || TIEMPO < BATX || TIEMPO < 1 || RADIO >= ESCWIDTH || RADIO >= ESCHEIGHT) {
         fprintf(stderr,"Error de parámetros: \n\t- La probabilidad de contagio debe estar comprendido entre 0 y 1.\n\t- El tiempo a simular debe ser mayor que 1.\n\t- El batch no puede ser mayor que el tiempo a simular.\n\t- El radio de contagio debe ser menor que el tamaino del lienzo.\n");
