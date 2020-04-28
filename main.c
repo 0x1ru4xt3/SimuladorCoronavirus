@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 		for(i=0; i<pobActual; i++){
-			moverPersona(personas[i], ESCWIDTH, ESCHEIGHT);
+			moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT);
 			// FICHERO: GUARDAR CAMBIO DE PERSONA
 			if(diasTranscurridos%BATX==0)
 				fprintf(posic,"%d,%d,%d:",personas[i].pos[0],personas[i].pos[1],personas[i].estado);
@@ -102,16 +102,17 @@ int main(int argc, char** argv) {
 
 				// DECIDIR SI SE CONTAGIA CADA INDIVIDUO EN BASE AL RADIO DE UN CONTAGIADO
 				for(e=0; e<pobActual; e++)
-					contagiadosRonda += infecPersona(personas[e], rangox, rangoy, RADIO, PROBRADIO);
+					contagiadosRonda += infecPersona(&personas[e], rangox, rangoy, RADIO, PROBRADIO);
 
 				// DECIDIR SI SE MUERE O SE RECUPERA
-				if(matarPersona(personas[i]) == 0){			// SE MUERE
+				int samatao = matarPersona(&personas[i]);
+				if(samatao == 0){				// SE MUERE
 					for(e=i; e<pobActual-1; e++)
 						personas[e] = personas[e+1];
 					muertosRonda++;
 					contagiadosTotales--;
 					pobActual--;
-				} else if(matarPersona(personas[i]) == 2){	// SE CURA
+				} else if(samatao == 2){			// SE CURA
 					curadosRonda++;
 					contagiadosTotales--;
 				}

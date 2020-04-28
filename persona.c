@@ -46,47 +46,47 @@ struct persona crearPersona(int edadMedia, int escAncho, int escAlto){
 
 // MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 // (Par: struct persona)
-void moverPersona(struct persona pers, int escAncho, int escAlto){
+void moverPersona(Persona *pers, int escAncho, int escAlto){
 	// SE CONTROLA PRIMERO UN EJE, DESPUES EL OTRO, SE CONTROLA
 	// QUE NO SE SALGA DE LOS LIMITES DEL ESCENARIO, Y SE ELIGE
 	// LA VELOCIDAD DE LA SIGUIENT RONDA EN BASE A SU POSICION:
 	// SI ESTA EN EL BORDE REBOTA, SI NO SE MUEVE LIBREMENTE :)
 
-	if(pers.pos[0] + pers.vel[0] >= escAlto){
-		pers.pos[0] = escAlto;
-		pers.vel[0] = rand()%5+(-5);
-	} else if(pers.pos[0] + pers.vel[0] <= 0){
-		pers.pos[0] = 0;
-		pers.vel[0] = rand()%5;
+	if(pers->pos[0] + pers->vel[0] >= escAlto){
+		pers->pos[0] = escAlto;
+		pers->vel[0] = rand()%5+(-5);
+	} else if(pers->pos[0] + pers->vel[0] <= 0){
+		pers->pos[0] = 0;
+		pers->vel[0] = rand()%5;
 	} else {
-		pers.pos[0] += pers.vel[0];
-		pers.vel[0] = rand()%10+(-5);
+		pers->pos[0] += pers->vel[0];
+		pers->vel[0] = rand()%10+(-5);
 	}
 
-	if(pers.pos[1] + pers.vel[1] >= escAncho){
-		pers.pos[1] = escAncho;
-		pers.vel[1] = rand()%5+(-5);
-	} else if(pers.pos[1] + pers.vel[0] <= 0){
-		pers.pos[1] = 0;
-		pers.vel[1] = rand()%5;
+	if(pers->pos[1] + pers->vel[1] >= escAncho){
+		pers->pos[1] = escAncho;
+		pers->vel[1] = rand()%5+(-5);
+	} else if(pers->pos[1] + pers->vel[0] <= 0){
+		pers->pos[1] = 0;
+		pers->vel[1] = rand()%5;
 	} else {
-		pers.pos[1] += pers.vel[1];
-		pers.vel[1] = rand()%10+(-5);
+		pers->pos[1] += pers->vel[1];
+		pers->vel[1] = rand()%10+(-5);
 	}
 }
 
 // DECISION DE INFECTAR UNA PERSONA por RADIO DE CONTAGIADO
 // (Par: struct persona, ints radio del infectado)
-int infecPersona(struct persona per, int rangox, int rangoy, int radio, float probRadio){
+int infecPersona(Persona *per, int rangox, int rangoy, int radio, float probRadio){
 	// SI NO ESTA INFECTADO y NO LO HA ESTADO
-	if(per.estado == 0){
+	if(per->estado == 0){
 		// SI ESTA DENTRO DEL RANGO DE EJE X DEL INFECTADO
-		if(per.pos[0] <= rangox+radio && per.pos[0] >= rangox-radio){
+		if(per->pos[0] <= rangox+radio && per->pos[0] >= rangox-radio){
 			// SI ESTA DENTRO DEL RANGO DE EJE Y DEL INFECTADO
-			if(per.pos[1] <= rangoy+radio && per.pos[1] >= rangoy-radio){
+			if(per->pos[1] <= rangoy+radio && per->pos[1] >= rangoy-radio){
 				float deci = (rand()%100) /100.0;
 				if(deci>probRadio){
-					per.estado = 1;
+					per->estado = 1;
 					return 1;
 				}
 			}
@@ -97,17 +97,17 @@ int infecPersona(struct persona per, int rangox, int rangoy, int radio, float pr
 
 // DECISION DE MUERTE DE UNA PERSONA
 // (Par: struct persona)
-int matarPersona(struct persona per){
+int matarPersona(Persona *per){
 	float deci = calcProb();
-	if(deci <= per.probMuerte)
+	if(deci <= per->probMuerte)
 		return 0;
 	else {
-		per.diasContaminado++;
-		if(per.estado == 1 && per.diasContaminado >= 5){
-			per.estado = 2;
+		per->diasContaminado = per->diasContaminado +1;
+		if(per->estado == 1 && per->diasContaminado >= 5){
+			per->estado = 2;
 			return 1;
-		} else if(per.estado == 2 && per.diasContaminado >= 15){
-			per.estado = 3;
+		} else if(per->estado == 2 && per->diasContaminado >= 15){
+			per->estado = 3;
 			return 2;
 		}
 	}

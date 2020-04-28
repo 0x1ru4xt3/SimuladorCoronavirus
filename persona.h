@@ -14,20 +14,22 @@
  	int vel[2];
  };
 
+ typedef struct persona Persona;
+
  // CREAR PERSONA
  struct persona crearPersona(int edadMedia, int escAncho, int escAlto);
 
  // MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
  // (Par: struct persona)
- void moverPersona(struct persona pers, int escAncho, int escAlto);
+ void moverPersona(Persona *pers, int escAncho, int escAlto);
 
  // DECISION DE INFECTAR UNA PERSONA por RADIO DE CONTAGIADO
  // (Par: struct persona, ints radio del infectado)
- int infecPersona(struct persona per, int rangox, int rangoy, int radio, float probRadio);
+ int infecPersona(Persona *per, int rangox, int rangoy, int radio, float probRadio);
 
  // DECISION DE MUERTE DE UNA PERSONA
  // (Par: struct persona)
- int matarPersona(struct persona per);
+ int matarPersona(Persona *per);
 
  // CALCULAR UNA EDAD ENTRE 0 y 100
  // (Par: int edad media de la poblacion)
