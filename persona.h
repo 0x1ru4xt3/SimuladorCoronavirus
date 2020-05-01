@@ -17,7 +17,7 @@
  typedef struct persona Persona;
 
  // CREAR PERSONA
- struct persona crearPersona(int edadMedia, int escAncho, int escAlto);
+ struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev);
 
  // MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
  // (Par: struct persona)

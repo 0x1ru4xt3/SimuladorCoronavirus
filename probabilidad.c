@@ -9,6 +9,64 @@
  #include <gsl/gsl_math.h>
  #include <gsl/gsl_rng.h>
  #include <sys/time.h>
+ #include <stdlib.h>
+
+//Mediante esta funcion se podra calcular la desviacion a utilizar dependiendo de la media deseada.
+int calculo_desv(int edad){
+	int resul;
+	if(edad>=50){
+		resul=100-edad;
+		resul=resul/2;
+		return resul;
+	}else{
+		resul=edad/2;
+		return resul;
+	}
+}
+
+//Solo devolvera valores entre 0 y 100.
+double rand_normal(double media, double stddev)
+{//Box muller method
+    static double n2 = 0.0;
+    static int n2_cached = 0;
+    if (!n2_cached)
+    {
+        double x, y, r;
+        do
+        {
+            x = 2.0*rand()/RAND_MAX - 1;
+            y = 2.0*rand()/RAND_MAX - 1;
+            r = x*x + y*y;
+        }
+        while (r == 0.0 || r > 1.0);
+        {
+            double d = sqrt(-2.0*log(r)/r);
+            double n1 = x*d;
+            n2 = y*d;
+            double result = n1*stddev + media;
+            n2_cached = 1;
+	    if(result>100){
+		return 100.0;
+	    }else if(result<0){
+		return 0.0;
+	    }else{
+            	return result;
+            }
+	}
+    }
+    else
+    {
+        n2_cached = 0;
+	double aux=n2*stddev + media;
+        if(aux>100){
+		return 100.0;
+	}else if(aux<0){
+		return 0.0;
+	}else{
+		return n2*stddev + media;
+    	}
+     }
+}
 
 // CALCULAR UNA EDAD ENTRE 0 y 100
 // (Par: int edad media de la poblacion)
@@ -22,6 +80,7 @@ int numeroRandom(int medEdad) {
     T = gsl_rng_default; // Generar el setup
     r = gsl_rng_alloc (T);
     gsl_rng_set(r, mySeed);
+    double sigma=1.0;
     double u = gsl_rng_uniform(r); // ! He creado la variable me$
     gsl_rng_free (r);
     double aux=u*100;
