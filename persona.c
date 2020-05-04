@@ -130,7 +130,6 @@ int numeroRandom(int medEdad) {
     double aux=u*100;
     int auxa=aux;
     return auxa;
-
 }
 
 // CALCULAR NUMERO ENTRE 0 y 1 (DECISION DE MUERTE)

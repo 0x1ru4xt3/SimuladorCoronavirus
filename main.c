@@ -53,8 +53,8 @@ int main(int argc, char** argv) {
 
 	// INICIALIZACION FICHEROS
 	FILE *dias, *posic;
-	posic=fopen("historialposic.txt","w+");
-	dias=fopen("historialdias.txt", "w+");
+	posic = fopen("historialposic.txt","w+");
+	dias  = fopen("historialdias.txt", "w+");
 
 	// INICIALIZACION ARRAY PERSONAS
 	struct persona *personas;
@@ -74,7 +74,6 @@ int main(int argc, char** argv) {
 	int aux = rand()%POBLACION;
 	personas[aux].estado = 1;
 	contagiadosTotales++;
-
 
 	// BUCLE PRINCIPAL
 	printf("STATUS: Iniciando programa...\n");
