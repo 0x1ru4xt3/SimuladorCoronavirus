@@ -52,7 +52,7 @@ void moverPersona(Persona *pers, int escAncho, int escAlto){
 
 	if(pers->pos[0] + pers->vel[0] >= escAlto){
 		pers->pos[0] = escAlto;
-		pers->vel[0] = rand()%5+(-5);
+		//pers->vel[0] = rand()%5+(-5);
 	} else if(pers->pos[0] + pers->vel[0] <= 0){
 		pers->pos[0] = 0;
 		pers->vel[0] = rand()%5;
@@ -63,7 +63,7 @@ void moverPersona(Persona *pers, int escAncho, int escAlto){
 
 	if(pers->pos[1] + pers->vel[1] >= escAncho){
 		pers->pos[1] = escAncho;
-		pers->vel[1] = rand()%5+(-5);
+		//pers->vel[1] = rand()%5+(-5);
 	} else if(pers->pos[1] + pers->vel[0] <= 0){
 		pers->pos[1] = 0;
 		pers->vel[1] = rand()%5;
