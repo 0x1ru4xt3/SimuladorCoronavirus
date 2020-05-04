@@ -118,7 +118,7 @@ perıodo de incubacion del virus que varıa entre 1 y 14 dıas siendo la media 5
 > ./main tiempoASimular tamanoAncho tamanoAlto radio probRadio poblacion
 	
    El programa utiliza el paquete [GSL](https://www.gnu.org/software/gsl/doc/html/), por lo que es necesario que el paquete esté instalado en el sistema. Para compilar con gcc:
-> gcc main.c -o main -lgsl
+> gcc main.c -o main -lgsl -lm
 	
 
 Desarrollado con [@iBiri99](https://github.com/iBiri99)

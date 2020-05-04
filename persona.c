@@ -3,11 +3,9 @@
  * Fichero recogiendo las funciones relacionadas con personas.
  * Abril de 2020
  */
- #include <gsl/gsl_math.h>
- #include <gsl/gsl_rng.h>
- #include <sys/time.h>
  #include <stdlib.h>
  #include "persona.h"
+ #include "probabilidad.h"
 
  // PROBABILIDADES POR EDAD
  #define EDAD1 0.004  // < 50
@@ -17,9 +15,9 @@
  #define EDAD5 0.148  // > 80
 
 // CREAR PERSONA
-struct persona crearPersona(int edadMedia, int escAncho, int escAlto){
+struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev){
 	struct persona per;
-	per.edad = numeroRandom(edadMedia);
+	per.edad =(int) rand_normal(edadMedia,dev);
 	per.estado = 0;
 	per.diasContaminado = 0;
 
@@ -54,7 +52,7 @@ void moverPersona(Persona *pers, int escAncho, int escAlto){
 
 	if(pers->pos[0] + pers->vel[0] >= escAlto){
 		pers->pos[0] = escAlto;
-		pers->vel[0] = rand()%5+(-5);
+		//pers->vel[0] = rand()%5+(-5);
 	} else if(pers->pos[0] + pers->vel[0] <= 0){
 		pers->pos[0] = 0;
 		pers->vel[0] = rand()%5;
@@ -65,7 +63,7 @@ void moverPersona(Persona *pers, int escAncho, int escAlto){
 
 	if(pers->pos[1] + pers->vel[1] >= escAncho){
 		pers->pos[1] = escAncho;
-		pers->vel[1] = rand()%5+(-5);
+		//pers->vel[1] = rand()%5+(-5);
 	} else if(pers->pos[1] + pers->vel[0] <= 0){
 		pers->pos[1] = 0;
 		pers->vel[1] = rand()%5;
@@ -113,6 +111,7 @@ int matarPersona(Persona *per){
 	}
 }
 
+<<<<<<< HEAD
 // CALCULAR UNA EDAD ENTRE 0 y 100
 // (Par: int edad media de la poblacion)
 int numeroRandom(int medEdad) {
@@ -147,3 +146,5 @@ float calcProb(){
     gsl_rng_free (r);
     return (float)u;
 }
+=======
+>>>>>>> 25489136f145786db911160f0645d2a8abbe0435

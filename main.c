@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "persona.h"
-
+#include "probabilidad.h"
 #define SEED 0
 
 // CALCULAR LA MEDIA DE EDAD
@@ -22,7 +22,6 @@ int main(int argc, char** argv) {
 		fprintf(stderr,"Funcionamiento: %s <tiempoASimular> <tamanoAncho> <tamanoAlto> <radio> <probRadio> <poblacion> <edadMedia> <batch>\n", argv[0]);
 		exit(1);
 	}
-
 	int TIEMPO 		= atoi(argv[1]);
 	int ESCHEIGHT 	= atoi(argv[2]);
 	int ESCWIDTH 	= atoi(argv[3]);
@@ -31,12 +30,14 @@ int main(int argc, char** argv) {
 	int POBLACION 	= atoi(argv[6]);
 	int EDADMEDIA 	= atoi(argv[7]);
 	int BATX 		= atoi(argv[8]);
+	int desv=0;
 
 	if (PROBRADIO > 0.9 || PROBRADIO < 0 || TIEMPO < BATX || TIEMPO < 1 || RADIO >= ESCWIDTH || RADIO >= ESCHEIGHT) {
         fprintf(stderr,"Error de parámetros: \n\t- La probabilidad de contagio debe estar comprendido entre 0 y 1.\n\t- El tiempo a simular debe ser mayor que 1.\n\t- El batch no puede ser mayor que el tiempo a simular.\n\t- El radio de contagio debe ser menor que el tamaino del lienzo.\n");
 		exit(1);
 	}
 
+	desv=calculo_desv(EDADMEDIA);
 	srand(SEED);
 
 	// INICIALIZACIONES VARIABLES
@@ -61,13 +62,13 @@ int main(int argc, char** argv) {
     personas  = malloc(POBLACION*sizeof(struct persona));
 
 	// IMPRESION DE VARIABLES INTRODUCIDAS POR PARAMETRO
-	printf("STATUS: DATOS INTRODUCIDOS: \n\tTIEMPO %d\n\tPOBLACION: %d\n\tANCHO ESC: %d  ALTO_ESC: %d\n\tRADIO CONTAGIO: %d  PROB DE CONTAGIO RADIO: %f\n",
+	printf("STATUS: DATOS INTRODUCIDOS: \n\tTIEMPO %d\n\tPOBLACION: %d\n\tESCENARIO: %dx%d\n\tRADIO CONTAGIO: %d  PROB DE CONTAGIO RADIO: %.2f\n",
 			TIEMPO, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
 
 	// CREAR POBLACION
 	printf("STATUS: Creando población...\n");
 	for(i=0; i<POBLACION; i++)
-		personas[i] = crearPersona(EDADMEDIA, ESCWIDTH, ESCHEIGHT);
+		personas[i] = crearPersona(EDADMEDIA, ESCWIDTH, ESCHEIGHT,desv);
 
 	// PRIMER INFECTADO!
 	printf("STATUS: PRIMER INFECTADO!\n");
@@ -125,21 +126,22 @@ int main(int argc, char** argv) {
 		contagiadosTotales += contagiadosRonda;
 		curadosTotales += curadosRonda;
 		muertosTotales += muertosRonda;
-	   	if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
-			fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
-		}
 
 		// RULAR TIEMPO
 		diasTranscurridos++;
 
-	    // VISUALIZAR PROGRESO
-	    printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n",
-	            diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
+		// VISUALIZAR PROGRESO
+	   	if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
+			fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
+			printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
+		}
 
 		// CONTROLAR SI SE DEBE FINALIZAR EL PROGRAMA
         if(contagiadosTotales == 0) break;
         if(pobActual == 0) break;
 	}
+
+	printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 
 	// LIBERAR MEMORIA y CERRAR ARCHIVOS AL ACABAR PROGRAMA
 	printf("STATUS: Liberando memoria alocada...\n");
