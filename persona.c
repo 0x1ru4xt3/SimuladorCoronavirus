@@ -111,7 +111,6 @@ int matarPersona(Persona *per){
 	}
 }
 
-<<<<<<< HEAD
 // CALCULAR UNA EDAD ENTRE 0 y 100
 // (Par: int edad media de la poblacion)
 int numeroRandom(int medEdad) {
@@ -144,7 +143,5 @@ float calcProb(){
     gsl_rng_set(r, mySeed);
     double u = gsl_rng_uniform(r); // Generar numero entre 0 y 1.
     gsl_rng_free (r);
-    return (float)u;
+    return (float) u;
 }
-=======
->>>>>>> 25489136f145786db911160f0645d2a8abbe0435
