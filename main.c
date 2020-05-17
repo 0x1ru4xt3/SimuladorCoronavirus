@@ -22,35 +22,43 @@ int main(int argc, char** argv) {
 		fprintf(stderr,"Funcionamiento: %s <tiempoASimular> <tamanoAncho> <tamanoAlto> <radio> <probRadio> <poblacion> <edadMedia> <batch>\n", argv[0]);
 		exit(1);
 	}
-	int TIEMPO 		= atoi(argv[1]);
+
+	int TIEMPO 	= atoi(argv[1]);
 	int ESCHEIGHT 	= atoi(argv[2]);
 	int ESCWIDTH 	= atoi(argv[3]);
-	int RADIO 		= atoi(argv[4]);
+	int RADIO 	= atoi(argv[4]);
 	float PROBRADIO = atof(argv[5]);
 	int POBLACION 	= atoi(argv[6]);
 	int EDADMEDIA 	= atoi(argv[7]);
-	int BATX 		= atoi(argv[8]);
-	int desv=0;
+	int BATX 	= atoi(argv[8]);
 
 	if (PROBRADIO > 0.9 || PROBRADIO < 0 || TIEMPO < BATX || TIEMPO < 1 || RADIO >= ESCWIDTH || RADIO >= ESCHEIGHT) {
         fprintf(stderr,"Error de parámetros: \n\t- La probabilidad de contagio debe estar comprendido entre 0 y 1.\n\t- El tiempo a simular debe ser mayor que 1.\n\t- El batch no puede ser mayor que el tiempo a simular.\n\t- El radio de contagio debe ser menor que el tamaino del lienzo.\n");
 		exit(1);
 	}
 
-	desv=calculo_desv(EDADMEDIA);
-	srand(SEED);
+	// INICIALIZACIONES MPI
+	int world_rank, world_size;
+	MPI_Init(NULL, NULL);
+	MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
 	// INICIALIZACIONES VARIABLES
-    printf("STATUS: Inicializando variables...\n");
+	printf("STATUS: Inicializando variables...\n");
 	int i, e, j;
    	int rangox, rangoy;
 	int muertosRonda, curadosRonda, contagiadosRonda;
+	int muertosNodo, curadosNodo, contagiadosNodo;
 	int muertosTotales = 0;
 	int curadosTotales = 0;
 	int contagiadosTotales = 0;
 	int diasTranscurridos = 0;
+	int desv = 0;
 	int pobActual = POBLACION;
 	int edadMedia = EDADMEDIA;
+
+	desv=calculo_desv(EDADMEDIA);
+	srand(SEED);
 
 	// INICIALIZACION FICHEROS
 	FILE *dias, *posic;
@@ -59,7 +67,7 @@ int main(int argc, char** argv) {
 
 	// INICIALIZACION ARRAY PERSONAS
 	struct persona *personas;
-    personas  = malloc(POBLACION*sizeof(struct persona));
+	personas  = malloc(POBLACION*sizeof(struct persona));
 
 	// IMPRESION DE VARIABLES INTRODUCIDAS POR PARAMETRO
 	printf("STATUS: DATOS INTRODUCIDOS: \n\tTIEMPO %d\n\tPOBLACION: %d\n\tESCENARIO: %dx%d\n\tRADIO CONTAGIO: %d  PROB DE CONTAGIO RADIO: %.2f\n",
@@ -89,14 +97,15 @@ int main(int argc, char** argv) {
 			// FICHERO: GUARDAR CAMBIO DE PERSONA
 			if(diasTranscurridos%BATX==0)
 				fprintf(posic,"%d,%d,%d:",personas[i].pos[0],personas[i].pos[1],personas[i].estado);
-        }
+        	}
+
 		// FICHERO: SALTAR DE LINEA TRAS MOVER TODAS LAS PERSONAS
 		if(diasTranscurridos%BATX==0)
 			fprintf(posic,"\n");
 
-    	// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
-        for(i=0; i<pobActual; i++){
-            if(personas[i].estado == 1 || personas[i].estado == 2){
+	    	// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
+        	for(i=0; i<pobActual; i++){
+			if(personas[i].estado == 1 || personas[i].estado == 2){
 				rangox = personas[i].pos[0];
 				rangoy = personas[i].pos[1];
 
@@ -116,13 +125,21 @@ int main(int argc, char** argv) {
 					curadosRonda++;
 					contagiadosTotales--;
 				}
-	        }
+			}
 		}
+
+		// FUNCION MPI: RECOGER VALORES DE NODOS Y SUMAR
+		// contagiadosRonda = 0;
+		// MPI_Reduce(&contagiadosNodo, &contagiadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+		// curadosRonda = 0;
+		// MPI_Reduce(&curadosNodo, &curadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+		// muertosRonda = 0;
+		// MPI_Reduce(&muertosNodo, &muertososRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
 		// ACTUALIZAR EDAD MEDIA
 		edadMedia = mediaEdad(personas, pobActual);
 
-	    // ACTUALIZAR VALORES TOTALES
+		// ACTUALIZAR VALORES TOTALES
 		contagiadosTotales += contagiadosRonda;
 		curadosTotales += curadosRonda;
 		muertosTotales += muertosRonda;
@@ -131,23 +148,25 @@ int main(int argc, char** argv) {
 		diasTranscurridos++;
 
 		// VISUALIZAR PROGRESO
-	   	if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
+		if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
 			fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
 			printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 		}
 
 		// CONTROLAR SI SE DEBE FINALIZAR EL PROGRAMA
-        if(contagiadosTotales == 0) break;
-        if(pobActual == 0) break;
+       		if(contagiadosTotales == 0) break;
+       		if(pobActual == 0) break;
 	}
 
-	printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
+	// if(world_rank == 0){
+		printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 
-	// LIBERAR MEMORIA y CERRAR ARCHIVOS AL ACABAR PROGRAMA
-	printf("STATUS: Liberando memoria alocada...\n");
-	free(personas);
-	fclose(dias);
-	fclose(posic);
-    printf("STATUS: Fin del programa.\n");
-
+		// LIBERAR MEMORIA, CERRAR ARCHIVOS y CERRAR MPI AL ACABAR PROGRAMA
+		printf("STATUS: Liberando memoria alocada...\n");
+		free(personas);
+		fclose(dias);
+		fclose(posic);
+		MPI_Finalize();
+		printf("STATUS: Fin del programa.\n");
+	// }
 }
