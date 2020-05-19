@@ -6,6 +6,12 @@
 
 #define SEED 0
 
+/* Seguramente haya que usar MPI Isend y MPI_Irecv con el parametro en recv MPI_ANY_SOURCE para escuchar a todos los nodos
+de manera no bloqueante.
+
+*/
+
+
 // CALCULAR LA MEDIA DE EDAD
 // (Par: struct persona, int poblacion actual)
 int mediaEdad(struct persona *per, int pobl){
@@ -58,7 +64,49 @@ int main(int argc, char** argv) {
 	int desv = 0;
 	int pobActual = POBLACION;
 	int edadMedia = EDADMEDIA;
+	//PARA MPI
+ 	int *proc; //Con este puntero guardaremos los nodos que van a trabajar.
+	int nfilas;//Se guarda la cantidad de filas que tiene que calcular cada nodo.
+	int restofilas;//Luego se repartiran las que sobren en caso de que las dimensiones no sean multiplo.
+	int ncolumnas;//Se guarda la cantidad de columnas que tiene que calcular cada nodo.
+	int restocolumnas;//Luego se repartiran las que sobren en caso de que las dimensiones no sean multiplo.
+	
 
+	int *coordenadasX; //Aqui guardaremos las coordenadas X de las que es responsable cada nodo.
+	int *coordenadasY; //Aqui guardaremos las coordenadas Y de las que es responsable cada nodo.
+
+	if(world_size<=ESCHEIGHT && world_size<=ESCWIDTH){ //Si hay mas filas que nodos y mas columnas que nodos, entonces el comunicador contendrá a todos.
+			proc=malloc(world_size*sizeof(int));
+			coordenadasX=malloc(world_size*sizeof(int));
+			coordenadasY=malloc(world_size*sizeof(int));
+
+			nfilas=ESCHEIGHT/world_size; //Ver cuantas filas tienen que controlar cada nodo.
+			restofilas=ESCHEIGHT%world_size; //Las que sobran.
+			ncolumnas=ESCWIDTH/world_size; //Vemos cuantas columnas tienen que controlar cada nodo.
+			restocolumnas=ESCWIDTH%world_size; //Las columnas que sobran.
+
+			for(i=0;i<world_size;i++){
+					proc[i]=i;
+					//EJE X (Para calcular las cordenadas) y saber a quien hay que enviarle cada persona.
+					coordenadasX[i]=h*nfilas; //Hay que controlar los ultimos elementos TODO
+					//EJE Y (Para calcular las cordenadas) y saber a quien hay que enviarle cada persona.
+					coordenadasY[h]=h*ncolumnas; //Hay que controlar los ultimos elementos TODO
+			}
+
+	}else{ //Si no hay tantas filas, solo utilizar algunos nodos.
+			proc=malloc(ESCHEIGHT*sizeof(int));
+			for(i=0;i<=tamano;i++){
+					proc[i]=i;
+			}
+			nfilas=1;
+			restofilas=0;
+	}
+
+
+
+
+	
+	
 	desv = calculo_desv(EDADMEDIA);
 	srand(SEED);
 
@@ -84,18 +132,21 @@ int main(int argc, char** argv) {
 		printf("STATUS: DATOS INTRODUCIDOS: \n\tTIEMPO %d\n\tPOBLACION: %d\n\tESCENARIO: %dx%d\n\tRADIO CONTAGIO: %d  PROB DE CONTAGIO RADIO: %.2f\n",
 			TIEMPO, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
 
-	// CREAR POBLACION
-	if(world_rank == 0)
+	// El primer nodo genera toda la poblacion.
+	if(world_rank == 0){
 		printf("STATUS: Creando población...\n");
-	for(i=0; i<POBLACION; i++)
-		personas[i] = crearPersona(EDADMEDIA, ESCWIDTH, ESCHEIGHT,desv);
+		for(i=0; i<POBLACION; i++)
+			personas[i] = crearPersona(EDADMEDIA, ESCWIDTH, ESCHEIGHT,desv);
+	}
 
 	// PRIMER INFECTADO!
-	if(world_rank == 0)
+	if(world_rank == 0){
 		printf("STATUS: PRIMER INFECTADO!\n");
-	int aux = rand()%POBLACION;
-	personas[aux].estado = 1;
-	contagiadosTotales++;
+		int aux = rand()%POBLACION;
+		personas[aux].estado = 1;
+		contagiadosTotales++;
+	}
+	//Ahora habria que compartir toda la informacion con los demas nodos. Scatter?
 
 	// BUCLE PRINCIPAL
 	if(world_rank == 0)
@@ -107,6 +158,7 @@ int main(int argc, char** argv) {
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 		for(i=0; i<pobActual; i++){
+			//AQUI HABRA QUE VER QUIEN LO TIENE QUE CALCULAR.
 			moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT);
 			// FICHERO: GUARDAR CAMBIO DE PERSONA
 			if(diasTranscurridos%BATX==0)
@@ -127,6 +179,36 @@ int main(int argc, char** argv) {
 
 	    	// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
         	for(i=0; i<pobActual; i++){
+				//AQUI HABRA QUE VER QUIEN LO TIENE QUE CALCULAR.
+				/* Algo del estilo:
+				if(personas[i].pos[0]>=coordenadasX[world_rank]&&personas[i].pos[0]<(coordenadasX[world_rank]+nfilas)){
+					if(personas[i].pos[1]>=coordenadasY[world_rank]&&personas[i].pos[1]<(coordenadasY[world_rank]+ncolumnas)){
+						//ESTO ES LO DE MAS ABAJO.
+						if(personas[i].estado == 1 || personas[i].estado == 2){
+						rangox = personas[i].pos[0];
+						rangoy = personas[i].pos[1];
+
+						// DECIDIR SI SE CONTAGIA CADA INDIVIDUO EN BASE AL RADIO DE UN CONTAGIADO
+						for(e=0; e<pobActual; e++)
+							contagiadosRonda += infecPersona(&personas[e], rangox, rangoy, RADIO, PROBRADIO);
+
+						// DECIDIR SI SE MUERE O SE RECUPERA
+						int samatao = matarPersona(&personas[i]);
+						if(samatao == 0){				// SE MUERE
+							for(e=i; e<pobActual-1; e++)
+								personas[e] = personas[e+1];
+							muertosRonda++;
+							contagiadosTotales--;
+							pobActual--;
+						} else if(samatao == 2){			// SE CURA
+							curadosRonda++;
+							contagiadosTotales--;
+						}
+					}
+					}
+				}
+
+				*/
 			if(personas[i].estado == 1 || personas[i].estado == 2){
 				rangox = personas[i].pos[0];
 				rangoy = personas[i].pos[1];
@@ -173,7 +255,7 @@ int main(int argc, char** argv) {
 		// if(world_rank == 0)
 		if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
 			// ESCRIBIR EN FICHERO CON MPI
-			// MPI_File_write(dias, BUFFER_QUE_ESCRIBIREMOS, TAMAÑO_DEL_BUFFER, MPI_CHAR, statDias)
+			// MPI_File_write(dias, BUFFER_QUE_ESCRIBIREMOS, 8, MPI_UNSIGNED_CHAR, statDias)
 			fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
 			printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 		}
