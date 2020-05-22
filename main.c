@@ -64,6 +64,7 @@ int main(int argc, char** argv) {
 	int desv = 0;
 	int pobActual = POBLACION;
 	int edadMedia = EDADMEDIA;
+	
 	//PARA MPI
  	int *proc; //Con este puntero guardaremos los nodos que van a trabajar.
 	int nfilas;//Se guarda la cantidad de filas que tiene que calcular cada nodo.
@@ -101,27 +102,24 @@ int main(int argc, char** argv) {
 			nfilas=1;
 			restofilas=0;
 	}
-
-
-
-
-	
 	
 	desv = calculo_desv(EDADMEDIA);
 	srand(SEED);
 
 	// INICIALIZACION FICHEROS (MPI)
-	// int posic;
-	// MPI_FILE p;
-	// MPI_Status statPosic;
-	// posic = MPI_File_open( MPI_COMM_WORLD, "historialposic.txt", MPI_MODE_RDWR | MPI_MODE_CREATE, MPI_INFO_NULL, &p);
-	// int dias;
-	// MPI_FILE d;
-	// MPI_Status statDias;
-	// dias = MPI_File_open( MPI_COMM_WORLD, "historialdias.txt", MPI_MODE_RDWR | MPI_MODE_CREATE, MPI_INFO_NULL, &d);
-	FILE *dias, *posic;
-	posic = fopen("historialposic.txt","w+");
-	dias  = fopen("historialdias.txt", "w+");
+	int posic;
+	MPI_File p;
+	MPI_Status statPosic;
+	posic = MPI_File_open( MPI_COMM_WORLD, "historialposic.txt", MPI_MODE_RDWR | MPI_MODE_CREATE, MPI_INFO_NULL, &p);
+	int dias;
+	MPI_File d;
+	MPI_Status statDias;
+	dias = MPI_File_open( MPI_COMM_WORLD, "historialdias.txt", MPI_MODE_RDWR | MPI_MODE_CREATE, MPI_INFO_NULL, &d);
+	
+	// INICIALIZACION FICHEROS (SERIE)
+	// FILE *dias, *posic;
+	// posic = fopen("historialposic.txt","w+");
+	// dias  = fopen("historialdias.txt", "w+");
 
 	// INICIALIZACION ARRAY PERSONAS
 	struct persona *personas;
@@ -146,8 +144,10 @@ int main(int argc, char** argv) {
 		personas[aux].estado = 1;
 		contagiadosTotales++;
 	}
+	
 	//Ahora habria que compartir toda la informacion con los demas nodos. Scatter?
-
+	// Si, y el "aux" anterior hay que compartir tambien con los demas, pa que sepan cual esta infectau
+	
 	// BUCLE PRINCIPAL
 	if(world_rank == 0)
 		printf("STATUS: Iniciando programa...\n");
@@ -163,19 +163,24 @@ int main(int argc, char** argv) {
 			// FICHERO: GUARDAR CAMBIO DE PERSONA
 			if(diasTranscurridos%BATX==0)
 				// ESCRIBIR EN FICHERO CON MPI
-				// MPI_File_write(posic, BUFFER_QUE_ESCRIBIREMOS, TAMAÑO_DEL_BUFFER, MPI_INT, statPosic)
-				fprintf(posic,"%d,%d,%d:",personas[i].pos[0],personas[i].pos[1],personas[i].estado);
+				char str1[24];
+				sprintf(str1, "%d,%d,%d:", personas[i].pos[0], personas[i].pos[1], personas[i].estado);
+				// AQUI FALTA EL OFFSET
+				MPI_File_seek(p, MPI_Offset offset, MPI_SEEK_END)
+				MPI_File_write(p, str1, sizeof(str1+3), MPI_CHAR, &statPosic)
+				// fprintf(posic,"%d,%d,%d:",personas[i].pos[0],personas[i].pos[1],personas[i].estado);
         	}
 
-		//
-		// AQUI CREO QUE HABRIA QUE HACER UNA BANDERA ANTES DE HACER SALTO DE LINEA CLARO
-		//
+		// BARRERA
+		MPI_Barrier(MPI_COMM_WORLD);
 
 		// FICHERO: SALTAR DE LINEA TRAS MOVER TODAS LAS PERSONAS
 		if(diasTranscurridos%BATX==0)
 			// ESCRIBIR EN FICHERO CON MPI
-			// MPI_File_write(posic, "\n", 1? o 2?, MPI_CHAR, statPosic)
-			fprintf(posic,"\n");
+			// PONER OFFSET AL FINAL
+			// MPI_File_seek(MPI_File fh, MPI_Offset offset, int whence)
+			MPI_File_write(p, '\n', 1, MPI_CHAR, &statPosic)
+			// fprintf(posic,"\n");
 
 	    	// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
         	for(i=0; i<pobActual; i++){
@@ -252,32 +257,35 @@ int main(int argc, char** argv) {
 		diasTranscurridos++;
 
 		// VISUALIZAR PROGRESO
-		// if(world_rank == 0)
-		if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
-			// ESCRIBIR EN FICHERO CON MPI
-			// MPI_File_write(dias, BUFFER_QUE_ESCRIBIREMOS, 8, MPI_UNSIGNED_CHAR, statDias)
-			fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
-			printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
-		}
+		if(world_rank == 0)
+			if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
+				// ESCRIBIR EN FICHERO CON MPI
+				char str[24];
+				sprintf(str, "%d:%d,%d,%d\n", diasTranscurridos, contagiadosTotales, curadosTotales, muertosTotales);
+				// MPI_File_seek(MPI_File fh, MPI_Offset offset, int whence)
+				MPI_File_write(d, str, sizeof(str)+4, MPI_CHAR, &statDias)
+				// fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
+				printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
+			}
 
 		// CONTROLAR SI SE DEBE FINALIZAR EL PROGRAMA
-       	if(contagiadosTotales == 0) break;
-       	if(pobActual == 0) break;
+       		if(contagiadosTotales == 0) break;
+       		if(pobActual == 0) break;
 	}
 
-	// if(world_rank == 0){
+	if(world_rank == 0){
 		printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 
 		// LIBERAR MEMORIA, CERRAR ARCHIVOS y CERRAR MPI AL ACABAR PROGRAMA
 		printf("STATUS: Liberando memoria alocada...\n");
 		printf("STATUS: Fin del programa.\n");
-	// }
+	}
 
 	free(personas);
 	// CERRAR ARCHIVOS MPI
-	// MPI_File_close(p);
-	// MPI_File_close(d);
-	fclose(dias);
-	fclose(posic);
+	MPI_File_close(p);
+	MPI_File_close(d);
+	// fclose(dias);
+	// fclose(posic);
 	MPI_Finalize();
 }
