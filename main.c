@@ -45,10 +45,6 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-	// INICIO DE TIEMPO DE EJECUCION
-	if(world_rank == 0)
-		clock_t inicio = clock();
-	
 	// INICIALIZACIONES MPI
 	int world_rank, world_size;
 	MPI_Init(NULL, NULL);
@@ -69,18 +65,25 @@ int main(int argc, char** argv) {
 	int desv = 0;
 	int pobActual = POBLACION;
 	int edadMedia = EDADMEDIA;
-	
+	char str1[24];
+	char str2[24];
+	clock_t inicio, fin;
+
 	//PARA MPI
  	int *proc; //Con este puntero guardaremos los nodos que van a trabajar.
 	int nfilas;//Se guarda la cantidad de filas que tiene que calcular cada nodo.
 	int restofilas;//Luego se repartiran las que sobren en caso de que las dimensiones no sean multiplo.
 	int ncolumnas;//Se guarda la cantidad de columnas que tiene que calcular cada nodo.
 	int restocolumnas;//Luego se repartiran las que sobren en caso de que las dimensiones no sean multiplo.
-	
 
 	int *coordenadasX; //Aqui guardaremos las coordenadas X de las que es responsable cada nodo.
 	int *coordenadasY; //Aqui guardaremos las coordenadas Y de las que es responsable cada nodo.
 
+	// INICIO DE TIEMPO DE EJECUCION
+	if(world_rank == 0)
+		inicio = clock();
+
+	// 
 	if(world_size<=ESCHEIGHT && world_size<=ESCWIDTH){ //Si hay mas filas que nodos y mas columnas que nodos, entonces el comunicador contendrá a todos.
 			proc=malloc(world_size*sizeof(int));
 			coordenadasX=malloc(world_size*sizeof(int));
@@ -107,7 +110,7 @@ int main(int argc, char** argv) {
 			nfilas=1;
 			restofilas=0;
 	}
-	
+
 	desv = calculo_desv(EDADMEDIA);
 	srand(SEED);
 
@@ -120,7 +123,7 @@ int main(int argc, char** argv) {
 	MPI_File d;
 	MPI_Status statDias;
 	dias = MPI_File_open( MPI_COMM_WORLD, "historialdias.txt", MPI_MODE_RDWR | MPI_MODE_CREATE, MPI_INFO_NULL, &d);
-	
+
 	// INICIALIZACION FICHEROS (SERIE)
 	// FILE *dias, *posic;
 	// posic = fopen("historialposic.txt","w+");
@@ -149,10 +152,10 @@ int main(int argc, char** argv) {
 		personas[aux].estado = 1;
 		contagiadosTotales++;
 	}
-	
+
 	//Ahora habria que compartir toda la informacion con los demas nodos. Scatter?
 	// Si, y el "aux" anterior hay que compartir tambien con los demas, pa que sepan cual esta infectau
-	
+
 	// BUCLE PRINCIPAL
 	if(world_rank == 0)
 		printf("STATUS: Iniciando programa...\n");
@@ -168,11 +171,10 @@ int main(int argc, char** argv) {
 			// FICHERO: GUARDAR CAMBIO DE PERSONA
 			if(diasTranscurridos%BATX==0)
 				// ESCRIBIR EN FICHERO CON MPI
-				char str1[24];
 				sprintf(str1, "%d,%d,%d:", personas[i].pos[0], personas[i].pos[1], personas[i].estado);
 				// AQUI FALTA EL OFFSET
-				MPI_File_seek(p, MPI_Offset offset, MPI_SEEK_END)
-				MPI_File_write(p, str1, sizeof(str1+3), MPI_CHAR, &statPosic)
+				MPI_File_seek(p, MPI_Offset offset, MPI_SEEK_END);
+				MPI_File_write(p, str1, sizeof(str1+3), MPI_CHAR, &statPosic);
 				// fprintf(posic,"%d,%d,%d:",personas[i].pos[0],personas[i].pos[1],personas[i].estado);
         	}
 
@@ -183,8 +185,8 @@ int main(int argc, char** argv) {
 		if(diasTranscurridos%BATX==0)
 			// ESCRIBIR EN FICHERO CON MPI
 			// PONER OFFSET AL FINAL
-			// MPI_File_seek(MPI_File fh, MPI_Offset offset, int whence)
-			MPI_File_write(p, '\n', 1, MPI_CHAR, &statPosic)
+			// MPI_File_seek(MPI_File fh, MPI_Offset offset, int whence);
+			MPI_File_write(p, '\n', 1, MPI_CHAR, &statPosic);
 			// fprintf(posic,"\n");
 
 	    	// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
@@ -265,10 +267,9 @@ int main(int argc, char** argv) {
 		if(world_rank == 0)
 			if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
 				// ESCRIBIR EN FICHERO CON MPI
-				char str[24];
-				sprintf(str, "%d:%d,%d,%d\n", diasTranscurridos, contagiadosTotales, curadosTotales, muertosTotales);
-				// MPI_File_seek(MPI_File fh, MPI_Offset offset, int whence)
-				MPI_File_write(d, str, sizeof(str)+4, MPI_CHAR, &statDias)
+				sprintf(str2, "%d:%d,%d,%d\n", diasTranscurridos, contagiadosTotales, curadosTotales, muertosTotales);
+				// MPI_File_seek(MPI_File fh, MPI_Offset offset, int whence);
+				MPI_File_write(d, str2, sizeof(str2)+4, MPI_CHAR, &statDias);
 				// fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
 				printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 			}
@@ -280,11 +281,11 @@ int main(int argc, char** argv) {
 
 	if(world_rank == 0){
 		printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
-		
+
 		// FIN DE TIEMPO DE EJECUCION
-		clock_t fin = clock();
+		fin = clock();
 		double tiempoTotal = (double)(inicio - fin) / CLOCKS_PER_SEC;
-		
+
 		// LIBERAR MEMORIA, CERRAR ARCHIVOS y CERRAR MPI AL ACABAR PROGRAMA
 		printf("STATUS: Liberando memoria alocada...\n");
 		printf("STATUS: Tiempo de ejecución: %.2f\n", tiempoTotal);
@@ -293,8 +294,8 @@ int main(int argc, char** argv) {
 
 	free(personas);
 	// CERRAR ARCHIVOS MPI
-	MPI_File_close(p);
-	MPI_File_close(d);
+	MPI_File_close(&p);
+	MPI_File_close(&d);
 	// fclose(dias);
 	// fclose(posic);
 	MPI_Finalize();
