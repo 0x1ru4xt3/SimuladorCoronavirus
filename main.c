@@ -1,6 +1,7 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "persona.h"
 #include "probabilidad.h"
 
@@ -44,6 +45,10 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
+	// INICIO DE TIEMPO DE EJECUCION
+	if(world_rank == 0)
+		clock_t inicio = clock();
+	
 	// INICIALIZACIONES MPI
 	int world_rank, world_size;
 	MPI_Init(NULL, NULL);
@@ -275,9 +280,14 @@ int main(int argc, char** argv) {
 
 	if(world_rank == 0){
 		printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
-
+		
+		// FIN DE TIEMPO DE EJECUCION
+		clock_t fin = clock();
+		double tiempoTotal = (double)(inicio - fin) / CLOCKS_PER_SEC;
+		
 		// LIBERAR MEMORIA, CERRAR ARCHIVOS y CERRAR MPI AL ACABAR PROGRAMA
 		printf("STATUS: Liberando memoria alocada...\n");
+		printf("STATUS: Tiempo de ejecución: %.2f\n", tiempoTotal);
 		printf("STATUS: Fin del programa.\n");
 	}
 
