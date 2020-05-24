@@ -1,6 +1,7 @@
 //#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "persona.h"
 #include "probabilidad.h"
 #define SEED 0
@@ -37,6 +38,9 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
+	// INICIO TIEMPO DE EJECUCION
+	clock_t inicio = clock();	
+	
 	desv=calculo_desv(EDADMEDIA);
 	srand(SEED);
 
@@ -137,12 +141,17 @@ int main(int argc, char** argv) {
 		}
 
 		// CONTROLAR SI SE DEBE FINALIZAR EL PROGRAMA
-        if(contagiadosTotales == 0) break;
-        if(pobActual == 0) break;
+        	if(contagiadosTotales == 0) break;
+        	if(pobActual == 0) break;
 	}
-
+	
+	// FIN TIEMPO DE EJECUCION
+	clock_t fin = clock();
+	double tiempoTotal = (double)(inicio - fin) / CLOCKS_PER_SEC;
+	
 	printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
-
+	printf("STATUS: Tiempo de ejecucion en serie: %.2f\n", tiempoTotal);
+	
 	// LIBERAR MEMORIA y CERRAR ARCHIVOS AL ACABAR PROGRAMA
 	printf("STATUS: Liberando memoria alocada...\n");
 	free(personas);
