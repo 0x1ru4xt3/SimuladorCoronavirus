@@ -100,20 +100,16 @@ int main(int argc, char** argv) {
 
 
 	if(world_rank==0){
-
 		//Para sacar el tamaño de los cuadrantes.
-		int totalcuadrados; //Numero total de puntos a controlar por cada nodo.
+		int totalcuadrados, control; //Numero total de puntos a controlar por cada nodo.
 		int *factores;//Aqui guardaremos los factores.
 		int cuenteofactores=-1;
-		int nX;//Se guarda el tamaño de X
-		int nY;//Se guarda el tamaño de Y.
+		int nX, nY;//Se guarda el tamaño de X,Y
 		int capacidadarray = CAPACIDADINICIAL;
 		int tamanoActArray=0;
 		factores=malloc(capacidadarray*sizeof(int));//Aqui guardaremos los factores.
 		
-		int *coordenadasX; //Aqui guardaremos las coordenadas X de las que es responsable cada nodo.
-		int *coordenadasY; //Aqui guardaremos las coordenadas Y de las que es responsable cada nodo.
-		
+		int *coordenadasX, *coordenadasY; //Aqui guardaremos las coordenadas X,Y de las que es responsable cada nodo.
 
 		coordenadasX=malloc(world_size*sizeof(int));//guardaremos desde que punto del eje X se encarga cada nodo.
 		coordenadasY=malloc(world_size*sizeof(int));//guardaremos desde que punto del eje Y se encarga cada nodo.
@@ -121,7 +117,6 @@ int main(int argc, char** argv) {
 		totalcuadrados=(ESCHEIGHT*ESCWIDTH)/world_size;//Numero total de cuadrados a controlar por cada nodo.
 		//Ahora hay que sacar las dimensiones de los cuadrados:
 		//1-Sacar los factores:
-		int control;
 		for(control=2;control<=totalcuadrados/2;control++){
 			if(totalcuadrados % control == 0){
 				cuenteofactores++;
@@ -143,6 +138,8 @@ int main(int argc, char** argv) {
 				nY=factores[indice+1];
 			}
 			
+		}else{//Habra que mirar que hacer
+
 		}
 		//Mirar cuantos huecos va a haber.
 		//En X:
@@ -151,10 +148,10 @@ int main(int argc, char** argv) {
 		int huecosY = round(ESCHEIGHT/nY);
 
 		for(i=0;i<world_size;i++){
-				//EJE X (Para calcular las cordenadas) y saber a quien hay que enviarle cada persona.
-				coordenadasX[i]=(i%huecosX)*nX; 
-				//EJE Y (Para calcular las cordenadas) y saber a quien hay que enviarle cada persona.
-				coordenadasY[i]=(i/huecosX)*nY; 
+			//EJE X (Para calcular las cordenadas) y saber a quien hay que enviarle cada persona.
+			coordenadasX[i]=(i%huecosX)*nX; 
+			//EJE Y (Para calcular las cordenadas) y saber a quien hay que enviarle cada persona.
+			coordenadasY[i]=(i/huecosX)*nY; 
 		}
 	}
 	
@@ -181,19 +178,21 @@ int main(int argc, char** argv) {
 	personas = malloc(POBLACION*sizeof(struct persona));
 
 	// IMPRESION DE VARIABLES INTRODUCIDAS POR PARAMETRO
-	if(world_rank == 0)
+	if(world_rank == 0){
 		printf("STATUS: DATOS INTRODUCIDOS: \n\tTIEMPO %d\n\tPOBLACION: %d\n\tESCENARIO: %dx%d\n\tRADIO CONTAGIO: %d  PROB DE CONTAGIO RADIO: %.2f\n",
 			TIEMPO, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
-
-	// El primer nodo genera toda la poblacion y lo va a ir distribuyendo a un array de arrays (nº de arrays=nº de nodos) para luego repartirlos entre los procesadores.
-	if(world_rank == 0){
+		// El primer nodo genera toda la poblacion y lo va a ir distribuyendo a un array de arrays (nº de arrays=nº de nodos) para luego repartirlos entre los procesadores.
 		//Array de arrays con los datos de la gente:
 		struct persona* carga[24];
+		int tamanoarray[24]; //Aqui guardaremos cuantas personas tiene que calcular cada persona
+		int capacidadArray[24];
 		for(i=0;i<24;i++){
-			carga[i]=malloc(capacidadarray*sizeof(struct persona));//Si esto funciona es un puto milagro.
+			tamanoarray[i]=0;
+			capacidadArray[i]=CAPACIDADINICIAL;
+			carga[i]=malloc(CAPACIDADINICIAL*sizeof(struct persona));//Si esto funciona es un puto milagro.
 		}
 		printf("STATUS: Creando población...\n");
-		for(i=0; i<POBLACION; i++){}
+		for(i=0; i<POBLACION; i++){
 			personas[i] = crearPersona(EDADMEDIA, ESCWIDTH, ESCHEIGHT,desv);
 			if(i==0){
 				// PRIMER INFECTADO! Ahora el primer infectado sera el primero creado.
@@ -207,8 +206,8 @@ int main(int argc, char** argv) {
 			int posiFinal=posiX+(huecosX*posiY);//para saber a que servidor hay que mandarselo.
 			//push(int *arr, int index, int value, int *size, int *capacity){
 			//Hay que llevar un control de la longitud y del tamano actual de todos los arrays (MENUDO MARRON)
-			pushpersona(personas[posiFinal],,personas[i],,);
-				
+			pushpersona(carga[posiFinal],tamanoarray[posiFinal],personas[i],&tamanoarray[posiFinal],&capacidadArray[posiFinal]);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
+			tamanoarray[posiFinal]++;//Aumentar el indice del numero de personas de ese proc.
 		}
 		
 	}
