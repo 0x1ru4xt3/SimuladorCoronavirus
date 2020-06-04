@@ -236,10 +236,11 @@ int main(int argc, char** argv) {
 
 		// FICHERO: SALTAR DE LINEA TRAS MOVER TODAS LAS PERSONAS
 		if(diasTranscurridos%BATX==0)
-			if(comm_rank == 0) {
-				len = snprintf(message, sizeof("\n"), "\n");
-				MPI_File_seek(posiFile, offset, MPI_SEEK_END);
-				MPI_File_write(posiFile, message, len, MPI_CHAR, &status);
+			if(world_rank == 0) {
+				snprintf(linea1, sizeof("\n"), "\n");
+				offset1 = 0;
+				MPI_File_seek(posiFile, offset1, MPI_SEEK_END);
+				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
 			}
 
 		// BARRERA
@@ -272,8 +273,8 @@ int main(int argc, char** argv) {
 		MPI_Reduce(&curadosNodo, &curadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 		muertosRonda = 0;
 		pobActual -= muertosRonda;
-		MPI_Reduce(&muertosNodo, &muertososRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-		contagiadosTotales -= (curadosRonda + muertosRonda)
+		MPI_Reduce(&muertosNodo, &muertosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+		contagiadosTotales -= (curadosRonda + muertosRonda);
 		contagiadosRonda = 0;
 		MPI_Reduce(&contagiadosNodo, &contagiadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
@@ -310,7 +311,7 @@ int main(int argc, char** argv) {
 	}
 
 	free(personas);
-	MPI_File_close(posiFile);
+	MPI_File_close(&posiFile);
 	fclose(dias);
 	MPI_Finalize();
 }
