@@ -87,6 +87,7 @@ int main(int argc, char** argv) {
 	int desv = 0;
 	int pobActual = POBLACION;
 	int edadMedia = EDADMEDIA;
+	int len;
 	char linea1[30], linea2[30];
 
 	//PARA MPI
@@ -155,15 +156,14 @@ int main(int argc, char** argv) {
 	desv = calculo_desv(EDADMEDIA);
 	srand(SEED);
 
-	// INICIALIZACION FICHEROS (MPI)
+	// INICIALIZACION FICHEROS
+	FILE *dias;
+	dias  = fopen("historialdias.txt", "w+");
 	int posic;
 	MPI_Offset offset1;
 	MPI_File posiFile;
 	MPI_Status statPosic;
 	posic = MPI_File_open( MPI_COMM_WORLD, "historialposic.txt", MPI_MODE_RDWR | MPI_MODE_CREATE, MPI_INFO_NULL, &posiFile);
-
-	FILE *dias;
-	dias  = fopen("historialdias.txt", "w+");
 
 	// INICIALIZACION ARRAY PERSONAS
 	struct persona *personas;
@@ -173,6 +173,7 @@ int main(int argc, char** argv) {
 	if(world_rank == 0){
 		printf("STATUS: DATOS INTRODUCIDOS: \n\tTIEMPO %d\n\tPOBLACION: %d\n\tESCENARIO: %dx%d\n\tRADIO CONTAGIO: %d  PROB DE CONTAGIO RADIO: %.2f\n",
 			TIEMPO, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
+
 		// El primer nodo genera toda la poblacion y lo va a ir distribuyendo a un array de arrays (nº de arrays=nº de nodos) para luego repartirlos entre los procesadores.
 		//Array de arrays con los datos de la gente:
 		struct persona* carga[24];
@@ -218,15 +219,15 @@ int main(int argc, char** argv) {
 		contagiadosNodo = 0;
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
+		// este for tiene que ir de 0 al nº de personas que controla el procesador
 		for(i=0; i<pobActual; i++){
 			// AQUI HABRA QUE VER QUIEN LO TIENE QUE CALCULAR.
 			moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT);
 			// FICHERO: GUARDAR CAMBIOS DE PERSONA
 			if(diasTranscurridos%BATX==0)
 				// ESCRIBIR EN FICHERO CON MPI
-				sprintf(linea1, "%d,%d,%d:", personas[i].pos[0], personas[i].pos[1], personas[i].estado);
-				// AQUI FALTA EL OFFSET
-				// offset1 = ()
+				len = sprintf(linea1, "%d,%d,%d:", personas[i].pos[0], personas[i].pos[1], personas[i].estado);
+				//offset1 = (world_rank*len*nº de personas que controla el procesador) + (len*i);
 				MPI_File_seek(posiFile, offset1, MPI_SEEK_SET);
 				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
         	}
@@ -238,7 +239,6 @@ int main(int argc, char** argv) {
 		if(diasTranscurridos%BATX==0)
 			if(world_rank == 0) {
 				snprintf(linea1, sizeof("\n"), "\n");
-				offset1 = 0;
 				MPI_File_seek(posiFile, offset1, MPI_SEEK_END);
 				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
 			}
