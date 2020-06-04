@@ -12,7 +12,6 @@ de manera no bloqueante.
 
 */
 
-
 // CALCULAR LA MEDIA DE EDAD
 // (Par: struct persona, int poblacion actual)
 int mediaEdad(struct persona *per, int pobl){
@@ -42,7 +41,7 @@ void pushpersona(struct persona *arr, int index, struct persona value, int *size
           realloc(arr, sizeof(arr) * 2);
           *capacity = sizeof(arr) * 2;
      }
-     
+
      arr[index] = value;
      *size = *size + 1;
 }
@@ -88,16 +87,14 @@ int main(int argc, char** argv) {
 	int desv = 0;
 	int pobActual = POBLACION;
 	int edadMedia = EDADMEDIA;
-	
+	char linea1[30], linea2[30];
+
 	//PARA MPI
- 	int *proc=malloc(world_size*sizeof(int));; //Con este puntero guardaremos los nodos que van a trabajar.
+ 	int *proc=malloc(world_size*sizeof(int)); //Con este puntero guardaremos los nodos que van a trabajar.
 
-	
 	//Todos los nodos van a funcionar.
-	for(i=0;i<world_size;i++){
-				proc[i]=i;
-	}
-
+	for(i=0;i<world_size;i++)
+		proc[i]=i;
 
 	if(world_rank==0){
 		//Para sacar el tamaño de los cuadrantes.
@@ -108,12 +105,12 @@ int main(int argc, char** argv) {
 		int capacidadarray = CAPACIDADINICIAL;
 		int tamanoActArray=0;
 		factores=malloc(capacidadarray*sizeof(int));//Aqui guardaremos los factores.
-		
+
 		int *coordenadasX, *coordenadasY; //Aqui guardaremos las coordenadas X,Y de las que es responsable cada nodo.
 
 		coordenadasX=malloc(world_size*sizeof(int));//guardaremos desde que punto del eje X se encarga cada nodo.
 		coordenadasY=malloc(world_size*sizeof(int));//guardaremos desde que punto del eje Y se encarga cada nodo.
-		
+
 		totalcuadrados=(ESCHEIGHT*ESCWIDTH)/world_size;//Numero total de cuadrados a controlar por cada nodo.
 		//Ahora hay que sacar las dimensiones de los cuadrados:
 		//1-Sacar los factores:
@@ -124,7 +121,7 @@ int main(int argc, char** argv) {
 				//Comprobar que el numero no se pasa de las dimensiones
 				push(factores,tamanoActArray,control,tamanoActArray,capacidadarray);
 				//factores[cuenteofactores]=control;
-				
+
 			}
 		}
 		if(cuenteofactores!=-1){//No es primo
@@ -137,7 +134,7 @@ int main(int argc, char** argv) {
 				nX=factores[indice];
 				nY=factores[indice+1];
 			}
-			
+
 		}else{//Habra que mirar que hacer
 
 		}
@@ -149,29 +146,24 @@ int main(int argc, char** argv) {
 
 		for(i=0;i<world_size;i++){
 			//EJE X (Para calcular las cordenadas) y saber a quien hay que enviarle cada persona.
-			coordenadasX[i]=(i%huecosX)*nX; 
+			coordenadasX[i]=(i%huecosX)*nX;
 			//EJE Y (Para calcular las cordenadas) y saber a quien hay que enviarle cada persona.
-			coordenadasY[i]=(i/huecosX)*nY; 
+			coordenadasY[i]=(i/huecosX)*nY;
 		}
 	}
-	
+
 	desv = calculo_desv(EDADMEDIA);
 	srand(SEED);
 
 	// INICIALIZACION FICHEROS (MPI)
 	int posic;
-	MPI_File p;
+	MPI_Offset offset1;
+	MPI_File posiFile;
 	MPI_Status statPosic;
-	posic = MPI_File_open( MPI_COMM_WORLD, "historialposic.txt", MPI_MODE_RDWR | MPI_MODE_CREATE, MPI_INFO_NULL, &p);
-	int dias;
-	MPI_File d;
-	MPI_Status statDias;
-	dias = MPI_File_open( MPI_COMM_WORLD, "historialdias.txt", MPI_MODE_RDWR | MPI_MODE_CREATE, MPI_INFO_NULL, &d);
-	
-	// INICIALIZACION FICHEROS (SERIE)
-	// FILE *dias, *posic;
-	// posic = fopen("historialposic.txt","w+");
-	// dias  = fopen("historialdias.txt", "w+");
+	posic = MPI_File_open( MPI_COMM_WORLD, "historialposic.txt", MPI_MODE_RDWR | MPI_MODE_CREATE, MPI_INFO_NULL, &posiFile);
+
+	FILE *dias;
+	dias  = fopen("historialdias.txt", "w+");
 
 	// INICIALIZACION ARRAY PERSONAS
 	struct persona *personas;
@@ -209,33 +201,34 @@ int main(int argc, char** argv) {
 			pushpersona(carga[posiFinal],tamanoarray[posiFinal],personas[i],&tamanoarray[posiFinal],&capacidadArray[posiFinal]);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
 			tamanoarray[posiFinal]++;//Aumentar el indice del numero de personas de ese proc.
 		}
-		
+
 	}
-	
+
 	//Ahora habria que compartir toda la informacion con los demas nodos. Scatter?
-	// Si, y el "aux" anterior hay que compartir tambien con los demas, pa que sepan cual esta infectau
-	
-	// BUCLE PRINCIPAL
+
 	if(world_rank == 0)
 		printf("STATUS: Iniciando programa...\n");
+	// BUCLE PRINCIPAL
 	while(diasTranscurridos < TIEMPO) {
 		muertosRonda = 0;
 		curadosRonda = 0;
 		contagiadosRonda = 0;
+		muertosNodo = 0;
+		curadosNodo = 0;
+		contagiadosNodo = 0;
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 		for(i=0; i<pobActual; i++){
-			//AQUI HABRA QUE VER QUIEN LO TIENE QUE CALCULAR.
+			// AQUI HABRA QUE VER QUIEN LO TIENE QUE CALCULAR.
 			moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT);
-			// FICHERO: GUARDAR CAMBIO DE PERSONA
+			// FICHERO: GUARDAR CAMBIOS DE PERSONA
 			if(diasTranscurridos%BATX==0)
 				// ESCRIBIR EN FICHERO CON MPI
-				char str1[24];
-				sprintf(str1, "%d,%d,%d:", personas[i].pos[0], personas[i].pos[1], personas[i].estado);
+				sprintf(linea1, "%d,%d,%d:", personas[i].pos[0], personas[i].pos[1], personas[i].estado);
 				// AQUI FALTA EL OFFSET
-				MPI_File_seek(p, MPI_Offset offset, MPI_SEEK_END)
-				MPI_File_write(p, str1, sizeof(str1+3), MPI_CHAR, &statPosic)
-				// fprintf(posic,"%d,%d,%d:",personas[i].pos[0],personas[i].pos[1],personas[i].estado);
+				// offset1 = ()
+				MPI_File_seek(posiFile, offset1, MPI_SEEK_SET);
+				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
         	}
 
 		// BARRERA
@@ -243,45 +236,46 @@ int main(int argc, char** argv) {
 
 		// FICHERO: SALTAR DE LINEA TRAS MOVER TODAS LAS PERSONAS
 		if(diasTranscurridos%BATX==0)
-			// ESCRIBIR EN FICHERO CON MPI
-			// PONER OFFSET AL FINAL
-			// MPI_File_seek(MPI_File fh, MPI_Offset offset, int whence)
-			MPI_File_write(p, '\n', 1, MPI_CHAR, &statPosic)
-			// fprintf(posic,"\n");
+			if(comm_rank == 0) {
+				len = snprintf(message, sizeof("\n"), "\n");
+				MPI_File_seek(posiFile, offset, MPI_SEEK_END);
+				MPI_File_write(posiFile, message, len, MPI_CHAR, &status);
+			}
 
-	    	// INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
-        	for(i=0; i<pobActual; i++){
+		// BARRERA
+		MPI_Barrier(MPI_COMM_WORLD);
 
-				if(personas[i].estado == 1 || personas[i].estado == 2){
-					rangox = personas[i].pos[0];
-					rangoy = personas[i].pos[1];
+	    // INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
+        for(i=0; i<pobActual; i++){
+			if(personas[i].estado == 1 || personas[i].estado == 2){
+				rangox = personas[i].pos[0];
+				rangoy = personas[i].pos[1];
 
-					// DECIDIR SI SE CONTAGIA CADA INDIVIDUO EN BASE AL RADIO DE UN CONTAGIADO
-					for(e=0; e<pobActual; e++)
-						contagiadosRonda += infecPersona(&personas[e], rangox, rangoy, RADIO, PROBRADIO);
+				// DECIDIR SI SE CONTAGIA CADA INDIVIDUO EN BASE AL RADIO DE UN CONTAGIADO
+				for(e=0; e<pobActual; e++)
+					contagiadosNodo += infecPersona(&personas[e], rangox, rangoy, RADIO, PROBRADIO);
 
-					// DECIDIR SI SE MUERE O SE RECUPERA
-					int samatao = matarPersona(&personas[i]);
-					if(samatao == 0){				// SE MUERE
-						for(e=i; e<pobActual-1; e++)
-							personas[e] = personas[e+1];
-						muertosRonda++;
-						contagiadosTotales--;
-						pobActual--;
-					} else if(samatao == 2){			// SE CURA
-						curadosRonda++;
-						contagiadosTotales--;
-					}
+				// DECIDIR SI SE MUERE O SE RECUPERA
+				int samatao = matarPersona(&personas[i]);
+				if(samatao == 0){				// SE MUERE
+					for(e=i; e<pobActual-1; e++)
+						personas[e] = personas[e+1];
+					muertosNodo++;
+				} else if(samatao == 2){			// SE CURA
+					curadosNodo++;
 				}
+			}
 		}
 
 		// FUNCION MPI: RECOGER VALORES DE NODOS Y SUMAR
-		// contagiadosRonda = 0;
-		// MPI_Reduce(&contagiadosNodo, &contagiadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-		// curadosRonda = 0;
-		// MPI_Reduce(&curadosNodo, &curadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-		// muertosRonda = 0;
-		// MPI_Reduce(&muertosNodo, &muertososRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+		curadosRonda = 0;
+		MPI_Reduce(&curadosNodo, &curadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+		muertosRonda = 0;
+		pobActual -= muertosRonda;
+		MPI_Reduce(&muertosNodo, &muertososRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+		contagiadosTotales -= (curadosRonda + muertosRonda)
+		contagiadosRonda = 0;
+		MPI_Reduce(&contagiadosNodo, &contagiadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
 		// ACTUALIZAR EDAD MEDIA
 		edadMedia = mediaEdad(personas, pobActual);
@@ -297,20 +291,16 @@ int main(int argc, char** argv) {
 		// VISUALIZAR PROGRESO
 		if(world_rank == 0)
 			if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
-				// ESCRIBIR EN FICHERO CON MPI
-				char str[24];
-				sprintf(str, "%d:%d,%d,%d\n", diasTranscurridos, contagiadosTotales, curadosTotales, muertosTotales);
-				// MPI_File_seek(MPI_File fh, MPI_Offset offset, int whence)
-				MPI_File_write(d, str, sizeof(str)+4, MPI_CHAR, &statDias)
-				// fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
+				fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos,contagiadosTotales,curadosTotales,muertosTotales);
 				printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 			}
 
 		// CONTROLAR SI SE DEBE FINALIZAR EL PROGRAMA
-       		if(contagiadosTotales == 0) break;
-       		if(pobActual == 0) break;
+   		if(contagiadosTotales == 0) break;
+   		if(pobActual == 0) break;
 	}
 
+	// FINALIZANDO PROGRAMA
 	if(world_rank == 0){
 		printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 
@@ -320,13 +310,11 @@ int main(int argc, char** argv) {
 	}
 
 	free(personas);
-	// CERRAR ARCHIVOS MPI
-	MPI_File_close(p);
-	MPI_File_close(d);
-	// fclose(dias);
-	// fclose(posic);
+	MPI_File_close(posiFile);
+	fclose(dias);
 	MPI_Finalize();
 }
+
 /*
 struct persona **crear_matriz(int filas, int column) {
     struct persona *data = (struct persona *)malloc(filas*column*sizeof(struct persona));
@@ -337,3 +325,4 @@ struct persona **crear_matriz(int filas, int column) {
 
     return array;
 }
+*/
