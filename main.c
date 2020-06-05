@@ -38,7 +38,7 @@ void push(int *arr, int index, int value, int *size, int *capacity){
 //arr->Array. Index->donde,Value->valor,size->tamano total actual, Capacity->capacidad actual.
 void pushpersona(struct persona *arr, int index, struct persona value, int *size, int *capacity){
      if(*size > *capacity){
-          realloc(arr, sizeof(arr) * 2); //COMO SOLUCIONAR ESTO ? MALLOC.
+          *arr = realloc(arr, sizeof(arr) * 2); //COMO SOLUCIONAR ESTO ? 
           *capacity = sizeof(arr) * 2;
      }
 
@@ -97,66 +97,19 @@ int main(int argc, char** argv) {
 	for(i=0;i<world_size;i++)
 		proc[i]=i;
 
-//Calcular los rectangulos mediante JON.
-//      nX=width/Raiz(n proc)
-//		nY=heigh/raiz(n proc)
+	//Calcular de que tamano tienen que ser los cuadrados de cada nodo.
 	if(world_rank==0){
-		//Para sacar el tamaño de los cuadrantes.
-		int totalcuadrados, control; //Numero total de puntos a controlar por cada nodo.
-		int *factores;//Aqui guardaremos los factores.
-		int cuenteofactores=-1;
-		int nX, nY;//Se guarda el tamaño de X,Y
-		int capacidadarray = CAPACIDADINICIAL;
-		int tamanoActArray=0;
-		factores=malloc(capacidadarray*sizeof(int));//Aqui guardaremos los factores.
-
-		int *coordenadasX, *coordenadasY; //Aqui guardaremos las coordenadas X,Y de las que es responsable cada nodo.
-
-		coordenadasX=malloc(world_size*sizeof(int));//guardaremos desde que punto del eje X se encarga cada nodo.
-		coordenadasY=malloc(world_size*sizeof(int));//guardaremos desde que punto del eje Y se encarga cada nodo.
-
-		totalcuadrados=(ESCHEIGHT*ESCWIDTH)/world_size;//Numero total de cuadrados a controlar por cada nodo.
-		//Ahora hay que sacar las dimensiones de los cuadrados:
-		//1-Sacar los factores:
-		for(control=2;control<=totalcuadrados/2;control++){
-			if(totalcuadrados % control == 0){
-				cuenteofactores++;
-				//Entonces el numero encontrado es factor.
-				//Comprobar que el numero no se pasa de las dimensiones
-				push(factores,tamanoActArray,control,tamanoActArray,capacidadarray);
-				//factores[cuenteofactores]=control;
-
-			}
-		}
-		if(cuenteofactores!=-1){//No es primo
-			//La mejor opcion siempre tiene que estar en la mitad ya que estan ordenados.
-			int indice=cuenteofactores/2;
-			if(cuenteofactores%2==0){
-				nX=factores[indice-1];
-				nY=factores[indice];
-			}else{
-				nX=factores[indice];
-				nY=factores[indice+1];
-			}
-
-		}else{//Habra que mirar que hacer
-
-		}
-		//Mirar cuantos huecos va a haber.
-		//En X:
-		int huecosX = round(ESCWIDTH/nX);
-		//En Y:
-		int huecosY = round(ESCHEIGHT/nY);
-
-		for(i=0;i<world_size;i++){
-			//EJE X (Para calcular las cordenadas) y saber a quien hay que enviarle cada persona.
-			coordenadasX[i]=(i%huecosX)*nX;
-			//EJE Y (Para calcular las cordenadas) y saber a quien hay que enviarle cada persona.
-			coordenadasY[i]=(i/huecosX)*nY;
-		}
+		// Tamano de posicion de X e Y.
+		int nX=ESCWIDTH/sqrt(world_size);
+		int nY=ESCHEIGHT/sqrt(world_size);
 	}
-	//PASAR A CADA NODO el tamaño de nX y de nY, broadcat.
+	MPI_Bcast(&nX,1,MPI_INT,0,MPI_COMM_WORLD);
+	MPI_Bcast(&nY,1,MPI_INT,0,MPI_COMM_WORLD);
+	int NWX, NWY;
+	NWX=nX*(world_rank%(ESCWIDTH/nX));
+	NWY=nY*(world_rank%(ESCWIDTH/nY));
 
+	//PASAR A CADA NODO el tamaño de nX y de nY, broadcat.
 	desv = calculo_desv(EDADMEDIA);
 	srand(SEED);
 
@@ -164,6 +117,7 @@ int main(int argc, char** argv) {
 	FILE *dias;
 	dias  = fopen("historialdias.txt", "w+");
 	int posic;
+	
 	MPI_Offset offset1;
 	MPI_File posiFile;
 	MPI_Status statPosic;
@@ -171,7 +125,9 @@ int main(int argc, char** argv) {
 
 	// INICIALIZACION ARRAY PERSONAS
 	struct persona *personas;
-	personas = malloc(POBLACION*sizeof(struct persona)); //MIRAR TAMAÑO DE ESTO!
+	int longitud=0;
+	int capacidad=POBLACION/world_size;
+	personas = malloc(capacidad*sizeof(struct persona)); //MIRAR TAMAÑO DE ESTO!
 
 	// IMPRESION DE VARIABLES INTRODUCIDAS POR PARAMETRO
 	if(world_rank == 0){
@@ -179,36 +135,22 @@ int main(int argc, char** argv) {
 			TIEMPO, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
 
 		// El primer nodo genera toda la poblacion y lo va a ir distribuyendo a un array de arrays (nº de arrays=nº de nodos) para luego repartirlos entre los procesadores.
-		//Array de arrays con los datos de la gente:
-		struct persona* carga[24];
-		int tamanoarray[24]; //Aqui guardaremos cuantas personas tiene que calcular cada persona
-		int capacidadArray[24];
-		
-		for(i=0;i<24;i++){
-			tamanoarray[i]=0;
-			capacidadArray[i]=CAPACIDADINICIAL;
-			carga[i]=malloc(CAPACIDADINICIAL*sizeof(struct persona));//Si esto funciona es un puto milagro.
-		}
-		printf("STATUS: Creando población...\n");
-		//HABRA QUE PONERLO EN CADA NODO con POBLACION/wolrd_size
-		for(i=0; i<POBLACION; i++){
-			personas[i] = crearPersona(EDADMEDIA, ESCWIDTH, ESCHEIGHT,desv); //Añadir la posición de inicio del cuadrante.
-			if(i==0){
-				// PRIMER INFECTADO! Ahora el primer infectado sera el primero creado.
-				printf("STATUS: PRIMER INFECTADO!\n");
-				personas[0].estado = 1;
-				contagiadosTotales++;
-			}
-			//Ahora habra que asignarselo a un nodo.
-			int posiX=personas[i].pos[0]/nX;//Cuadrante X
-			int posiY=personas[i].pos[1]/nY;//Cuadrante Y.
-			int posiFinal=posiX+(huecosX*posiY);//para saber a que servidor hay que mandarselo.
-			//push(int *arr, int index, int value, int *size, int *capacity){
-			//Hay que llevar un control de la longitud y del tamano actual de todos los arrays (MENUDO MARRON)
-			pushpersona(carga[posiFinal],tamanoarray[posiFinal],personas[i],&tamanoarray[posiFinal],&capacidadArray[posiFinal]);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
-			tamanoarray[posiFinal]++;//Aumentar el indice del numero de personas de ese proc.
-		}
+		// Array de arrays con los datos de la gente:
 
+		printf("STATUS: Creando población en cada nodo\n");
+	}
+		//HABRA QUE PONERLO EN CADA NODO con POBLACION/wolrd_size
+	for(i=0; i<POBLACION/world_size; i++){
+		struct *persona persaux = crearPersona(EDADMEDIA, nX, nY ,desv, NWX, NWY); //Añadir la posición de inicio del cuadrante.
+		if(i==0 && world_rank==0){
+			// PRIMER INFECTADO! Ahora el primer infectado sera el primero creado.
+			printf("STATUS: PRIMER INFECTADO!\n");
+			persaux.estado = 1;
+			contagiadosTotales++;
+		}
+		//push(int *arr, int index, int value, int *size, int *capacity){
+		//Hay que llevar un control de la longitud y del tamano actual de todos los arrays (MENUDO MARRON)
+		pushpersona(personas,longitud,persaux,longitud,capacidad);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
 	}
 
 
@@ -320,15 +262,3 @@ int main(int argc, char** argv) {
 	fclose(dias);
 	MPI_Finalize();
 }
-
-/*
-struct persona **crear_matriz(int filas, int column) {
-    struct persona *data = (struct persona *)malloc(filas*column*sizeof(struct persona));
-    struct persona **array= (struct persona **)malloc(filas*sizeof(struct persona*));
-    int i;
-    for (i=0; i<filas; i++)
-        array[i] = &(data[column*i]);
-
-    return array;
-}
-*/

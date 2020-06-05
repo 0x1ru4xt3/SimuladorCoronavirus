@@ -15,7 +15,7 @@
  #define EDAD5 0.148  // > 80
 
 // CREAR PERSONA
-struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev){ //pasar coordenadas de alguna manera.
+struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev,int posX, int posY){ //pasar coordenadas de alguna manera.
 	struct persona per;
 	per.edad =(int) rand_normal(edadMedia,dev);
 	per.estado = 0;
