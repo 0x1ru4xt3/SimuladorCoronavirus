@@ -27,10 +27,13 @@ int mediaEdad(struct persona *per, int pobl){
 // Funcion para controlar los arrays dinamicos que no sabemos cuales van a ser su longitud, se guardaran las personas.
 // arr->Array. Index->donde,Value->valor,size->tamano total actual, Capacity->capacidad actual.
 void pushPersona(struct persona *arr, int index, struct persona value, int *size, int *capacity){
-     if(*size > *capacity){
-          *arr = realloc(arr, sizeof(arr) * 2); //COMO SOLUCIONAR ESTO ?
-          *capacity = sizeof(arr) * 2;
-     }
+     if(*size > *capacity){ //Redimensionarlo haciendolo mas grande
+        *arr = realloc(arr, sizeof(arr) * 2);
+        *capacity = sizeof(arr) * 2;
+     }else if(*size<(*capacity/2)){ //Redimensionarlo haciendolo mas pequeño
+		*arr = realloc(arr, sizeof(arr)/2);
+		*capacity=sizeof(arr)/2;
+	 }
 
      arr[index] = value;
      *size = *size + 1;
@@ -96,7 +99,7 @@ int main(int argc, char** argv) {
 		nX=ESCWIDTH/sqrt(world_size);
 		nY=ESCHEIGHT/sqrt(world_size);
 	}
-
+	
 	// PASAR A CADA NODO el tamaño de nX y de nY, broadcat.
 	MPI_Bcast(&nX,1,MPI_INT,0,MPI_COMM_WORLD);
 	MPI_Bcast(&nY,1,MPI_INT,0,MPI_COMM_WORLD);
@@ -121,7 +124,7 @@ int main(int argc, char** argv) {
 	struct persona *personas;
 	int longitud=0;
 	int capacidad=POBLACION/world_size;
-	personas = malloc(capacidad*sizeof(struct persona)); //MIRAR TAMAÑO DE ESTO!
+	personas = malloc(capacidad*sizeof(struct persona));
 
 	// IMPRESION DE VARIABLES INTRODUCIDAS POR PARAMETRO
 	if(world_rank == 0)
