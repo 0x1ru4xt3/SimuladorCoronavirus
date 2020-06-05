@@ -44,11 +44,13 @@ struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev,int
 
 // MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 // (Par: struct persona)
-void moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY, int limiteAncho, int limiteAlto){
+int moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY, int limiteAncho, int limiteAlto){
 	// SE CONTROLA PRIMERO UN EJE, DESPUES EL OTRO, SE CONTROLA
 	// QUE NO SE SALGA DE LOS LIMITES DEL ESCENARIO, Y SE ELIGE
 	// LA VELOCIDAD DE LA SIGUIENT RONDA EN BASE A SU POSICION:
 	// SI ESTA EN EL BORDE REBOTA, SI NO SE MUEVE LIBREMENTE :)
+
+    int respuesta = 0;
 
 	if (pers->pos[0] + pers->vel[0] >= escAncho){
 		pers->pos[0] = escAncho;
@@ -58,10 +60,10 @@ void moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY
 		pers->vel[0] = rand()%5;
 	} else if(pers->pos[0] + pers->vel[0] <= cordX){
         pers->pos[0] += pers->vel[0];
-		// PASARSELA AL PROCESADOR world_rank-1
+		respuesta = 1;
     } else if(pers->pos[0] + pers->vel[0] >= limiteAncho){
         pers->pos[0] += pers->vel[0];
-        // PASARSELA AL PROCESADOR world_rank+1
+        respuesta = 3;
 	} else {
 		pers->pos[0] += pers->vel[0];
 	}
@@ -74,13 +76,15 @@ void moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY
 		pers->vel[1] = rand()%5;
     } else if(pers->pos[1] + pers->vel[1] <= cordY){
         pers->pos[1] += pers->vel[1];
-        // PASARSELA AL PROCESADOR world_rank-x
+        respuesta = 2;
     } else if(pers->pos[1] + pers->vel[1] >= limiteAlto){
         pers->pos[1] += pers->vel[1];
-        // PASARSELA AL PROCESADOR world_rank+x
+        respuesta = 4;
 	} else {
 		pers->pos[1] += pers->vel[1];
 	}
+
+    return respuesta;
 }
 
 // DECISION DE INFECTAR UNA PERSONA por RADIO DE CONTAGIADO

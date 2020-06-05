@@ -174,11 +174,22 @@ int main(int argc, char** argv) {
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 		for(i=0; i<pobNodo; i++){
-			moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
-			// Si se tiene uqe ir a otro nodo:
-			//for(e=i; e<pobNodo-1; e++)
-			//	personas[e] = personas[e+1];
-			//pobNodo--;
+			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
+
+			switch (seMueve) {
+				case 1: MPI_Send(&personas[i], 1, persona, world_rank-1, world_rank, MPI_COMM_WORLD); break;
+				case 2: MPI_Send(&personas[i], 1, persona, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD); break;
+				case 3: MPI_Send(&personas[i], 1, persona, world_rank+1, world_rank, MPI_COMM_WORLD); break;
+				case 4: MPI_Send(&personas[i], 1, persona, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD); break;
+				default
+			}
+
+			if(seMueve != 0){	
+				// Si se tiene que ir a otro nodo
+				for(e=i; e<pobNodo-1; e++)
+					personas[e] = personas[e+1];
+				pobNodo--;
+			}
 
 			// FICHERO: GUARDAR CAMBIOS DE PERSONA
 			if(diasTranscurridos%BATX==0){
@@ -290,4 +301,3 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
-
