@@ -23,20 +23,9 @@ int mediaEdad(struct persona *per, int pobl){
 	return (media/pobl);
 }
 
-//Funcion para controlar los arrays dinamicos que no sabemos cuales van a ser su longitud.
-//arr->Array. Index->donde,Value->valor,size->tamano total actual, Capacity->capacidad actual.
-void push(int *arr, int index, int value, int *size, int *capacity){
-     if(*size > *capacity){
-          realloc(arr, sizeof(arr) * 2);
-          *capacity = sizeof(arr) * 2;
-     }
-     arr[index] = value;
-     *size = *size + 1;
-}
-
 //Funcion para controlar los arrays dinamicos que no sabemos cuales van a ser su longitud, se guardaran las personas.
 //arr->Array. Index->donde,Value->valor,size->tamano total actual, Capacity->capacidad actual.
-void pushpersona(struct persona *arr, int index, struct persona value, int *size, int *capacity){
+void pushPersona(struct persona *arr, int index, struct persona value, int *size, int *capacity){
      if(*size > *capacity){
           *arr = realloc(arr, sizeof(arr) * 2); //COMO SOLUCIONAR ESTO ? 
           *capacity = sizeof(arr) * 2;
@@ -141,7 +130,7 @@ int main(int argc, char** argv) {
 	}
 		//HABRA QUE PONERLO EN CADA NODO con POBLACION/wolrd_size
 	for(i=0; i<POBLACION/world_size; i++){
-		struct *persona persaux = crearPersona(EDADMEDIA, nX, nY ,desv, NWX, NWY); //Añadir la posición de inicio del cuadrante.
+		struct Persona persaux = crearPersona(EDADMEDIA, nX, nY ,desv, NWX, NWY); //Añadir la posición de inicio del cuadrante.
 		if(i==0 && world_rank==0){
 			// PRIMER INFECTADO! Ahora el primer infectado sera el primero creado.
 			printf("STATUS: PRIMER INFECTADO!\n");
@@ -150,7 +139,7 @@ int main(int argc, char** argv) {
 		}
 		//push(int *arr, int index, int value, int *size, int *capacity){
 		//Hay que llevar un control de la longitud y del tamano actual de todos los arrays (MENUDO MARRON)
-		pushpersona(personas,longitud,persaux,longitud,capacidad);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
+		pushPersona(personas,longitud,persaux,longitud,capacidad);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
 	}
 
 
