@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
 	int i, e, j;
    	int rangox, rangoy;
 	int muertosRonda, curadosRonda, contagiadosRonda;
-	int muertosNodo, curadosNodo, contagiadosNodo;
+	int muertosNodo, curadosNodo, contagiadosNodo, pobNodo;
 	int muertosTotales = 0;
 	int curadosTotales = 0;
 	int contagiadosTotales = 0;
@@ -183,7 +183,7 @@ int main(int argc, char** argv) {
 		struct persona* carga[24];
 		int tamanoarray[24]; //Aqui guardaremos cuantas personas tiene que calcular cada persona
 		int capacidadArray[24];
-		
+
 		for(i=0;i<24;i++){
 			tamanoarray[i]=0;
 			capacidadArray[i]=CAPACIDADINICIAL;
@@ -224,10 +224,8 @@ int main(int argc, char** argv) {
 		contagiadosNodo = 0;
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
-		// este for tiene que ir de 0 al nº de personas que controla el procesador
-		for(i=0; i<pobActual; i++){
-			// AQUI HABRA QUE VER QUIEN LO TIENE QUE CALCULAR.
-			moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT);
+		for(i=0; i<pobNodo; i++){
+			moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
 			// FICHERO: GUARDAR CAMBIOS DE PERSONA
 			if(diasTranscurridos%BATX==0)
 				// ESCRIBIR EN FICHERO CON MPI
@@ -252,19 +250,19 @@ int main(int argc, char** argv) {
 		MPI_Barrier(MPI_COMM_WORLD);
 
 	    // INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
-        for(i=0; i<pobActual; i++){
+        for(i=0; i<pobNodo; i++){
 			if(personas[i].estado == 1 || personas[i].estado == 2){
 				rangox = personas[i].pos[0];
 				rangoy = personas[i].pos[1];
 
 				// DECIDIR SI SE CONTAGIA CADA INDIVIDUO EN BASE AL RADIO DE UN CONTAGIADO
-				for(e=0; e<pobActual; e++)
+				for(e=0; e<pobNodo; e++)
 					contagiadosNodo += infecPersona(&personas[e], rangox, rangoy, RADIO, PROBRADIO);
 
 				// DECIDIR SI SE MUERE O SE RECUPERA
 				int samatao = matarPersona(&personas[i]);
 				if(samatao == 0){				// SE MUERE
-					for(e=i; e<pobActual-1; e++)
+					for(e=i; e<pobNodo-1; e++)
 						personas[e] = personas[e+1];
 					muertosNodo++;
 				} else if(samatao == 2){			// SE CURA
@@ -280,6 +278,9 @@ int main(int argc, char** argv) {
 		MPI_Reduce(&muertosNodo, &muertosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 		contagiadosRonda = 0;
 		MPI_Reduce(&contagiadosNodo, &contagiadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+		pobActual = 0;
+		MPI_Reduce(&pobNodo, &pobActual, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
 		pobActual -= muertosRonda;
 		contagiadosTotales = contagiadosTotales - (curadosRonda + muertosRonda) + contagiadosRonda;
 

@@ -44,32 +44,42 @@ struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev){ /
 
 // MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 // (Par: struct persona)
-void moverPersona(Persona *pers, int escAncho, int escAlto){
+void moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY, int limiteAncho, int limiteAlto){
 	// SE CONTROLA PRIMERO UN EJE, DESPUES EL OTRO, SE CONTROLA
 	// QUE NO SE SALGA DE LOS LIMITES DEL ESCENARIO, Y SE ELIGE
 	// LA VELOCIDAD DE LA SIGUIENT RONDA EN BASE A SU POSICION:
 	// SI ESTA EN EL BORDE REBOTA, SI NO SE MUEVE LIBREMENTE :)
 
-	if(pers->pos[0] + pers->vel[0] >= escAlto){
-		pers->pos[0] = escAlto;
-		//pers->vel[0] = rand()%5+(-5);
-	} else if(pers->pos[0] + pers->vel[0] <= 0){
-		pers->pos[0] = 0;
+	if (pers->pos[0] + pers->vel[0] >= escAncho){
+		pers->pos[0] = escAncho;
+        pers->vel[0] = rand()%5+(-5);
+    } else if(pers->pos[0] + pers->vel[0] <= 0){
+        pers->pos[0] = 0;
 		pers->vel[0] = rand()%5;
+	} else if(pers->pos[0] + pers->vel[0] <= cordX){
+        pers->pos[0] += pers->vel[0];
+		// PASARSELA AL PROCESADOR world_rank-1
+    } else if(pers->pos[0] + pers->vel[0] >= limiteAncho){
+        pers->pos[0] += pers->vel[0];
+        // PASARSELA AL PROCESADOR world_rank+1
 	} else {
 		pers->pos[0] += pers->vel[0];
-		pers->vel[0] = rand()%10+(-5);
 	}
 
-	if(pers->pos[1] + pers->vel[1] >= escAncho){
-		pers->pos[1] = escAncho;
-		//pers->vel[1] = rand()%5+(-5);
+	if (pers->pos[1] + pers->vel[1] >= escAlto){
+		pers->pos[1] = escAlto;
+		pers->vel[1] = rand()%5+(-5);
 	} else if(pers->pos[1] + pers->vel[0] <= 0){
 		pers->pos[1] = 0;
 		pers->vel[1] = rand()%5;
+    } else if(pers->pos[1] + pers->vel[1] <= cordY){
+        pers->pos[1] += pers->vel[1];
+        // PASARSELA AL PROCESADOR world_rank-x
+    } else if(pers->pos[1] + pers->vel[1] >= limiteAlto){
+        pers->pos[1] += pers->vel[1];
+        // PASARSELA AL PROCESADOR world_rank+x
 	} else {
 		pers->pos[1] += pers->vel[1];
-		pers->vel[1] = rand()%10+(-5);
 	}
 }
 
