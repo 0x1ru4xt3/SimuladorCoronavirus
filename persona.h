@@ -17,11 +17,11 @@
  typedef struct persona Persona;
 
  // CREAR PERSONA
- struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev);
+ struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev,int posX, int posY){ 
 
  // MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
  // (Par: struct persona)
- void moverPersona(Persona *pers, int escAncho, int escAlto);
+ void moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY, int limiteAncho, int limiteAlto){
 
  // DECISION DE INFECTAR UNA PERSONA por RADIO DE CONTAGIADO
  // (Par: struct persona, ints radio del infectado)

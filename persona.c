@@ -108,15 +108,15 @@ int infecPersona(Persona *per, int rangox, int rangoy, int radio, float probRadi
 int matarPersona(Persona *per){
 	float deci = calcProb();
 	if(deci <= per->probMuerte)
-		return 0;
+		return 1;
 	else {
 		per->diasContaminado = per->diasContaminado +1;
 		if(per->estado == 1 && per->diasContaminado >= 5){
 			per->estado = 2;
-			return 1;
+			return 2;
 		} else if(per->estado == 2 && per->diasContaminado >= 15){
 			per->estado = 3;
-			return 2;
+			return 0;
 		}
 	}
 }
