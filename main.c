@@ -28,10 +28,10 @@ int mediaEdad(struct persona *per, int pobl){
 // arr->Array. Index->donde,Value->valor,size->tamano total actual, Capacity->capacidad actual.
 void pushPersona(struct persona *arr, int index, struct persona value, int *size, int *capacity){
      if(*size > *capacity){ //Redimensionarlo haciendolo mas grande
-        *arr = realloc(arr, sizeof(arr) * 2);
+        arr = realloc(arr, sizeof(arr) * 2);
         *capacity = sizeof(arr) * 2;
      }else if(*size<(*capacity/2)){ //Redimensionarlo haciendolo mas pequeño
-		*arr = realloc(arr, sizeof(arr)/2);
+		arr = realloc(arr, sizeof(arr)/2);
 		*capacity=sizeof(arr)/2;
 	 }
 
@@ -90,8 +90,9 @@ int main(int argc, char** argv) {
  	int *proc=malloc(world_size*sizeof(int)); //Con este puntero guardaremos los nodos que van a trabajar.
 
 	// Todos los nodos van a funcionar.
-	for(i=0;i<world_size;i++)
+	for(i=0;i<world_size;i++){
 		proc[i]=i;
+	}
 
 	// Calcular de que tamano tienen que ser los cuadrados de cada nodo.
 	if(world_rank==0){
@@ -99,7 +100,7 @@ int main(int argc, char** argv) {
 		nX=ESCWIDTH/sqrt(world_size);
 		nY=ESCHEIGHT/sqrt(world_size);
 	}
-	
+
 	// PASAR A CADA NODO el tamaño de nX y de nY, broadcat.
 	MPI_Bcast(&nX,1,MPI_INT,0,MPI_COMM_WORLD);
 	MPI_Bcast(&nY,1,MPI_INT,0,MPI_COMM_WORLD);
@@ -135,10 +136,9 @@ int main(int argc, char** argv) {
 		printf("STATUS: Creando población en cada nodo...\n");
 	// CREAR POBLACION EN CADA NODO
 	for(i=0; i<round(POBLACION/world_size); i++){
-		struct Persona persaux = crearPersona(EDADMEDIA, nX, nY ,desv, NWX, NWY); //Añadir la posición de inicio del cuadrante.
-		//push(int *arr, int index, int value, int *size, int *capacity){
+		struct persona persaux = crearPersona(EDADMEDIA, nX, nY ,desv, NWX, NWY); //Añadir la posición de inicio del cuadrante.
 		//Hay que llevar un control de la longitud y del tamano actual de todos los arrays (MENUDO MARRON)
-		pushPersona(personas,longitud,persaux,longitud,capacidad);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
+		pushPersona(personas,longitud,persaux,&longitud,&capacidad);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
 	}
 
 	printf("STATUS: PRIMER INFECTADO!\n");
@@ -171,24 +171,26 @@ int main(int argc, char** argv) {
 			//pobNodo--;
 
 			// FICHERO: GUARDAR CAMBIOS DE PERSONA
-			if(diasTranscurridos%BATX==0)
+			if(diasTranscurridos%BATX==0){
 				// ESCRIBIR EN FICHERO CON MPI
 				len = sprintf(linea1, "%d,%d,%d:", personas[i].pos[0], personas[i].pos[1], personas[i].estado);
 				offset1 = (world_rank*len*pobNodo) + (len*i);
 				MPI_File_seek(posiFile, offset1, MPI_SEEK_SET);
 				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
         	}
+		}
 
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
 
 		// FICHERO: SALTAR DE LINEA TRAS MOVER TODAS LAS PERSONAS
-		if(diasTranscurridos%BATX==0)
+		if(diasTranscurridos%BATX==0){
 			if(world_rank == 0) {
 				snprintf(linea1, sizeof("\n"), "\n");
 				MPI_File_seek(posiFile, offset1, MPI_SEEK_END);
 				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
 			}
+		}
 
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -241,11 +243,12 @@ int main(int argc, char** argv) {
 		diasTranscurridos++;
 
 		// VISUALIZAR PROGRESO
-		if(world_rank == 0)
+		if(world_rank == 0){
 			if(diasTranscurridos%BATX==0){//Si es multiplo de lo metido significa que se va a guardar en el fichero los datos con el formato establecido
 				fprintf(dias, "%d:%d,%d,%d\n", diasTranscurridos, contagiadosTotales, curadosTotales,muertosTotales);
 				printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 			}
+		}
 
 		// CONTROLAR SI SE DEBE FINALIZAR EL PROGRAMA
 		if(world_rank == 0) {
