@@ -124,22 +124,9 @@ int main(int argc, char** argv) {
 	personas = malloc(capacidad*sizeof(struct persona)); //MIRAR TAMAÑO DE ESTO!
 
 	// IMPRESION DE VARIABLES INTRODUCIDAS POR PARAMETRO
-	if(world_rank == 0){
+	if(world_rank == 0)
 		printf("STATUS: DATOS INTRODUCIDOS: \n\tTIEMPO %d\n\tPOBLACION: %d\n\tESCENARIO: %dx%d\n\tRADIO CONTAGIO: %d  PROB DE CONTAGIO RADIO: %.2f\n",
 			TIEMPO, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
-
-		// El primer nodo genera toda la poblacion y lo va a ir distribuyendo a un array de arrays (nº de arrays=nº de nodos) para luego repartirlos entre los procesadores.
-		//Array de arrays con los datos de la gente:
-		struct persona* carga[24];
-		int tamanoarray[24]; //Aqui guardaremos cuantas personas tiene que calcular cada persona
-		int capacidadArray[24];
-
-		for(i=0;i<24;i++){
-			tamanoarray[i]=0;
-			capacidadArray[i]=CAPACIDADINICIAL;
-			carga[i]=malloc(CAPACIDADINICIAL*sizeof(struct persona));//Si esto funciona es un puto milagro.
-		}
-	}
 
 	if(world_rank == 0)
 		printf("STATUS: Creando población en cada nodo...\n");
