@@ -6,10 +6,13 @@
  *
  * Abril de 2020
  */
+ #include <mpi.h>
  #include <gsl/gsl_math.h>
  #include <gsl/gsl_rng.h>
  #include <sys/time.h>
  #include <stdlib.h>
+ #include "probabilidad.h"
+ #include "persona.h"
 
 //Mediante esta funcion se podra calcular la desviacion a utilizar dependiendo de la media deseada.
 int calculo_desv(int edad){
