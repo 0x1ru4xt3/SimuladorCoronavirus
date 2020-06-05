@@ -38,7 +38,7 @@ void push(int *arr, int index, int value, int *size, int *capacity){
 //arr->Array. Index->donde,Value->valor,size->tamano total actual, Capacity->capacidad actual.
 void pushpersona(struct persona *arr, int index, struct persona value, int *size, int *capacity){
      if(*size > *capacity){
-          realloc(arr, sizeof(arr) * 2);
+          realloc(arr, sizeof(arr) * 2); //COMO SOLUCIONAR ESTO ? MALLOC.
           *capacity = sizeof(arr) * 2;
      }
 
@@ -97,6 +97,9 @@ int main(int argc, char** argv) {
 	for(i=0;i<world_size;i++)
 		proc[i]=i;
 
+//Calcular los rectangulos mediante JON.
+//      nX=width/Raiz(n proc)
+//		nY=heigh/raiz(n proc)
 	if(world_rank==0){
 		//Para sacar el tamaño de los cuadrantes.
 		int totalcuadrados, control; //Numero total de puntos a controlar por cada nodo.
@@ -152,6 +155,7 @@ int main(int argc, char** argv) {
 			coordenadasY[i]=(i/huecosX)*nY;
 		}
 	}
+	//PASAR A CADA NODO el tamaño de nX y de nY, broadcat.
 
 	desv = calculo_desv(EDADMEDIA);
 	srand(SEED);
@@ -167,7 +171,7 @@ int main(int argc, char** argv) {
 
 	// INICIALIZACION ARRAY PERSONAS
 	struct persona *personas;
-	personas = malloc(POBLACION*sizeof(struct persona));
+	personas = malloc(POBLACION*sizeof(struct persona)); //MIRAR TAMAÑO DE ESTO!
 
 	// IMPRESION DE VARIABLES INTRODUCIDAS POR PARAMETRO
 	if(world_rank == 0){
@@ -179,14 +183,16 @@ int main(int argc, char** argv) {
 		struct persona* carga[24];
 		int tamanoarray[24]; //Aqui guardaremos cuantas personas tiene que calcular cada persona
 		int capacidadArray[24];
+		
 		for(i=0;i<24;i++){
 			tamanoarray[i]=0;
 			capacidadArray[i]=CAPACIDADINICIAL;
 			carga[i]=malloc(CAPACIDADINICIAL*sizeof(struct persona));//Si esto funciona es un puto milagro.
 		}
 		printf("STATUS: Creando población...\n");
+		//HABRA QUE PONERLO EN CADA NODO con POBLACION/wolrd_size
 		for(i=0; i<POBLACION; i++){
-			personas[i] = crearPersona(EDADMEDIA, ESCWIDTH, ESCHEIGHT,desv);
+			personas[i] = crearPersona(EDADMEDIA, ESCWIDTH, ESCHEIGHT,desv); //Añadir la posición de inicio del cuadrante.
 			if(i==0){
 				// PRIMER INFECTADO! Ahora el primer infectado sera el primero creado.
 				printf("STATUS: PRIMER INFECTADO!\n");
@@ -205,7 +211,6 @@ int main(int argc, char** argv) {
 
 	}
 
-	//Ahora habria que compartir toda la informacion con los demas nodos. Scatter?
 
 	if(world_rank == 0)
 		printf("STATUS: Iniciando programa...\n");
@@ -272,11 +277,11 @@ int main(int argc, char** argv) {
 		curadosRonda = 0;
 		MPI_Reduce(&curadosNodo, &curadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 		muertosRonda = 0;
-		pobActual -= muertosRonda;
 		MPI_Reduce(&muertosNodo, &muertosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-		contagiadosTotales -= (curadosRonda + muertosRonda);
 		contagiadosRonda = 0;
 		MPI_Reduce(&contagiadosNodo, &contagiadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+		pobActual -= muertosRonda;
+		contagiadosTotales = contagiadosTotales - (curadosRonda + muertosRonda) + contagiadosRonda;
 
 		// ACTUALIZAR EDAD MEDIA
 		edadMedia = mediaEdad(personas, pobActual);

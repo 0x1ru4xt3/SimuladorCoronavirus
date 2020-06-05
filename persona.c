@@ -15,7 +15,7 @@
  #define EDAD5 0.148  // > 80
 
 // CREAR PERSONA
-struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev){
+struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev){ //pasar coordenadas de alguna manera.
 	struct persona per;
 	per.edad =(int) rand_normal(edadMedia,dev);
 	per.estado = 0;
@@ -34,8 +34,8 @@ struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev){
 		per.probMuerte = EDAD5;
 
 	//CALCULO DE LA POSICION y VELOCIDAD INICIAL
-	per.pos[0] = rand()%escAlto;
-	per.pos[1] = rand()%escAncho;
+	per.pos[0] = rand()%escAlto+posX;
+	per.pos[1] = rand()%escAncho+posY;
 	per.vel[0] = rand()%10+(-5);
 	per.vel[1] = rand()%10+(-5);
 
