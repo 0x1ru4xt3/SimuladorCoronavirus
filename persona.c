@@ -4,6 +4,7 @@
  * Abril de 2020
  */
  #include <stdlib.h>
+ #include <mpi.h>
  #include "persona.h"
  #include "probabilidad.h"
 
