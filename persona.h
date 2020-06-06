@@ -27,6 +27,8 @@
  };
 
  typedef struct persona Persona;
+ typedef struct envio Envio;
+ typedef struct almacenamiento Almacenamiento;
 
  // CREAR PERSONA
  struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev,int posX, int posY);
