@@ -162,7 +162,7 @@ void crearTipoEnvio(Envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype *persona
 // CREAR DATATYPE PARA MANDAR
 void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS){
 	//Declaracion de los tipos del struct
-	MPI_Datatype tipo[2];
+	MPI_Datatype tipo[6];
 	tipo[0]=MPI_INT;
 	tipo[1]=MPI_INT;
 	tipo[2]=MPI_INT;
@@ -171,7 +171,7 @@ void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS){
     tipo[5]=MPI_INT;
 
 	//Declaracion de los tamaños de el struct
-	int tam[2];
+	int tam[6];
 	tam[0]=1;
 	tam[1]=1;
 	tam[2]=1;
@@ -189,11 +189,11 @@ void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS){
 	dist[2]=dir2-dir1;
     MPI_Get_address(&pers->probMuerte,&dir2);
 	dist[3]=dir2-dir1;
-    MPI_Get_address(&pers->pos,&dir2);
+    MPI_Get_address(pers->pos,&dir2);
 	dist[4]=dir2-dir1;
-    MPI_Get_address(&pers->vel,&dir2);
+    MPI_Get_address(pers->vel,&dir2);
     dist[5]=dir2-dir1;
-    printf("STATUS: crearTipoPersona 3..., DIR DE MEMORIA: %p\n",&dir2);
+    printf("STATUS: crearTipoPersona 3...\n");
 
 	//Creacion del tipo
 	MPI_Type_create_struct(6,tam,dist,tipo,MPI_DATOS);
