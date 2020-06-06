@@ -233,12 +233,13 @@ int main(int argc, char** argv) {
 		for(e=0; e<4; e++){
 			envios[e].capacidad=cap[e].capacidad;
 			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
+			holi=cap[e];
 			for(i=0;i<envios[e].capacidad;i++){
-				envios[e].personas[i]=cap[e].actualPersona;
-				printf("STATUS: ESTAMOS AQUI HAH 2, W.R=%d, cap[%d]=%p\n", world_rank, i, cap[e]);
+				envios[e].personas[i]=holi.actualPersona;
+				printf("STATUS: ESTAMOS AQUI HAH 2, W.R=%d, cap[%d]=%p\n", world_rank, i, holi);
 				holi=cap[e].siguienteAlma;
 				//cap[e]=*cap[e].siguienteAlma;
-				printf("STATUS: ESTAMOS AQUI HAH 3, W.R=%d, cap[%d]=%p\n", world_rank, i, cap[e]);
+				printf("STATUS: ESTAMOS AQUI HAH 3, W.R=%d, cap[%d]=%p\n", world_rank, i, holi);
 			}
 		}
 
