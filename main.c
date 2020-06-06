@@ -246,6 +246,7 @@ int main(int argc, char** argv) {
 				printf("Capacidad=%d\n", envios[e].capacidad);
 				for(i=0;i<envios[e].capacidad;i++)
 					printf("envios[%d].personas[%d]=%d\n", e, i, envios[e].personas[i].edad);
+			}
 		}
 
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
