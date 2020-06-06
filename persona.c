@@ -140,9 +140,14 @@ void crearTipoEnvio(Envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype *persona
 
     MPI_Aint dist[6],dir1,dir2;
 	dist[0]=0;
+
 	MPI_Get_address(&envio->capacidad, &dir1);
 	MPI_Get_address(envio->personas, &dir2);
 	dist[1]=dir2-dir1;
+
+    //Creacion del tipo
+    MPI_Type_create_struct(2,tam,dist,tipo,MPI_DATOS);
+    MPI_Type_commit(MPI_DATOS);
 }
 
 // CREAR DATATYPE PARA MANDAR
