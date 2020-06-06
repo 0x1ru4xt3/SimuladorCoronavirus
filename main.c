@@ -236,7 +236,7 @@ int main(int argc, char** argv) {
 			for(i=0;i<envios[e].capacidad;i++){
 				envios[e].personas[i]=cap[e].actualPersona;
 				printf("STATUS: ESTAMOS AQUI HAH 2, W.R=%d, cap[%d]=%p\n", world_rank, i, cap[e]);
-				cap[e]=*cap[e].siguienteAlma;
+				*cap[e]=cap[e].siguienteAlma;
 				printf("STATUS: ESTAMOS AQUI HAH 3, W.R=%d, cap[%d]=%p\n", world_rank, i, cap[e]);
 			}
 		}
