@@ -227,11 +227,11 @@ int main(int argc, char** argv) {
 			}*/
 		}
 
-		printf("STATUS: ESTAMOS AQUI HAH 1\n");
 
 		// PASAR DEL LINKEDLIST A ARRAY
 		for(e=0; e<4; e++){
 			envios[e].capacidad=cap[e].capacidad;
+			printf("STATUS: envios[e].capacidad = %d\n", envios[e].capacidad);
 			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
 			for(i=0;i<envios[e].capacidad;i++){
 				envios[e].personas[i]=cap[e].actualPersona;
