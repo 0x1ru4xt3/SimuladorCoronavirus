@@ -197,15 +197,9 @@ int main(int argc, char** argv) {
 		for(i=0;i<4;i++)
 			cap[i].capacidad=0;
 
-		if(world_rank == 0)
-			printf("STATUS: ESTAMOS AQUI HAH\n");
-
 		for(i=0; i<pobNodo; i++){
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
 			struct almacenamiento nuev;
-
-			if(world_rank == 0)
-				printf("STATUS: ESTAMOS AQUI HAH2\n");
 
 			if(seMueve != 0){
 				cap[seMueve-1].capacidad++;
@@ -216,31 +210,25 @@ int main(int argc, char** argv) {
 				cap[seMueve-1].ultimo = &nuev;
 			}
 
-			if(world_rank == 0)
-				printf("STATUS: ESTAMOS AQUI HAH3\n");
-
 			// SI LA PERSONA CAMBIA DE NODO
 			if(seMueve != 0){
 				for(e=i; e<pobNodo-1; e++)
 					personas[e] = personas[e+1];
-
-				if(world_rank == 0)
-					printf("STATUS: ESTAMOS AQUI HAH4\n");
 				pobNodo--;
 			}
 
 			// FICHERO: GUARDAR CAMBIOS DE PERSONA
-			if(diasTranscurridos%BATX==0){
+			/*if(diasTranscurridos%BATX==0){
 				// ESCRIBIR EN FICHERO CON MPI
 				len = sprintf(linea1, "%d,%d,%d:", personas[i].pos[0], personas[i].pos[1], personas[i].estado);
 				offset1 = (world_rank*len*pobNodo) + (len*i);
 				MPI_File_seek(posiFile, offset1, MPI_SEEK_SET);
 				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
-			}
+			}*/
 		}
 
 		if(world_rank == 0)
-			printf("STATUS: ESTAMOS AQUI HAH 6\n");
+			printf("STATUS: ESTAMOS AQUI HAH 1\n");
 
 		// PASAR DEL LINKEDLIST A ARRAY
 		for(e=0; e<4; e++){
@@ -253,7 +241,7 @@ int main(int argc, char** argv) {
 		}
 
 		if(world_rank == 0)
-			printf("STATUS: ESTAMOS AQUI HAH 7\n");
+			printf("STATUS: ESTAMOS AQUI HAH 2\n");
 
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
 		MPI_Send(&envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD);
@@ -279,13 +267,13 @@ int main(int argc, char** argv) {
 		MPI_Barrier(MPI_COMM_WORLD);
 
 		// FICHERO: SALTAR DE LINEA TRAS MOVER TODAS LAS PERSONAS
-		if(diasTranscurridos%BATX==0){
+		/*if(diasTranscurridos%BATX==0){
 			if(world_rank == 0) {
 				snprintf(linea1, sizeof("\n"), "\n");
 				MPI_File_seek(posiFile, offset1, MPI_SEEK_END);
 				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
 			}
-		}
+		}*/
 
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
