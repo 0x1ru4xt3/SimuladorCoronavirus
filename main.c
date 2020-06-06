@@ -9,10 +9,12 @@
 #define SEED 0
 #define CAPACIDADINICIAL 5
 
-/* Seguramente haya que usar MPI Isend y MPI_Irecv con el parametro en recv MPI_ANY_SOURCE para escuchar a todos los nodos
-de manera no bloqueante.
-
-*/
+struct almacenamiento{
+	int capacidad;
+	struct persona actualPersona;
+	struct *almacenamiento siguienteAlma;
+	struct *almacenamiento ultimo;
+}
 
 // CALCULAR LA MEDIA DE EDAD
 // (Par: struct persona, int poblacion actual)
@@ -182,14 +184,25 @@ int main(int argc, char** argv) {
 		contagiadosNodo = 0;
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
+		struct almacenamiento cap1;
+		struct almacenamiento cap2;
+		struct almacenamiento cap3;
+		struct almacenamiento cap4;
+		cap1.capacidad=0;
+		cap2.capacidad=0;
+		cap3.capacidad=0;
+		cap4.capacidad=0;
+
 		for(i=0; i<pobNodo; i++){
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
 
 			switch (seMueve) {
-				case 1: MPI_Isend(&personas[i], 1, dataPersona, world_rank-1, world_rank, MPI_COMM_WORLD, &request); break;
-				case 2: MPI_Isend(&personas[i], 1, dataPersona, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request); break;
-				case 3: MPI_Isend(&personas[i], 1, dataPersona, world_rank+1, world_rank, MPI_COMM_WORLD, &request); break;
-				case 4: MPI_Isend(&personas[i], 1, dataPersona, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request); break;
+				case 1: cap1.capacidad++;
+				struct
+					break;
+				case 2: cap2.capacidad++; break;
+				case 3: cap3.capacidad++; break;
+				case 4: cap4.capacidad++; break;
 			}
 
 			if(seMueve != 0){
