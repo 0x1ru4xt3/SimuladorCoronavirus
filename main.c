@@ -200,8 +200,10 @@ int main(int argc, char** argv) {
 			if(seMueve != 0){
 				cap[seMueve-1].capacidad++;
 				nuev.actualPersona = personas[i];
-				cap[seMueve-1].ultimo.siguienteAlma = nuev;
-				cap[seMueve-1].ultimo = nuev;
+				struct almacenamiento aux;
+				aux=cap[seMueve-1].ultimo;
+				aux.siguienteAlma = &nuev;
+				cap[seMueve-1].ultimo = &nuev;
 			}
 
 			// SI LA PERSONA CAMBIA DE NODO
@@ -227,7 +229,7 @@ int main(int argc, char** argv) {
 			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
 			for(i=0;i<envios[e].capacidad;i++){
 				envios[e].personas[i]=cap[e].actualPersona;
-				cap[e]=cap[e].siguienteAlma;
+				cap[e]=*cap[e].siguienteAlma;
 			}
 		}
 
