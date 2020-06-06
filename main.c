@@ -12,14 +12,14 @@
 struct almacenamiento{
 	int capacidad;
 	struct persona actualPersona;
-	struct *almacenamiento siguienteAlma;
-	struct *almacenamiento ultimo;
-}
+	struct almacenamiento *siguienteAlma;
+	struct almacenamiento *ultimo;
+};
 
 struct envio{
 	int capacidad;
-	struct *persona personas;
-}
+	struct persona *personas;
+};
 
 // CALCULAR LA MEDIA DE EDAD
 // (Par: struct persona, int poblacion actual)
