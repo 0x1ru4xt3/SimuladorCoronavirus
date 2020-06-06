@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
 	// PARA MPI
  	int *proc=malloc(world_size*sizeof(int)); //Con este puntero guardaremos los nodos que van a trabajar.
 	struct persona persVirtual = crearPersona(100, 1, 1, 1, 1, 1);
-	persVirtual.edad=101
+	persVirtual.edad=101;
 
 	// BARRERA
 	MPI_Barrier(MPI_COMM_WORLD);
