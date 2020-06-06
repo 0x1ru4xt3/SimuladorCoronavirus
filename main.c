@@ -228,21 +228,25 @@ int main(int argc, char** argv) {
 		}
 
 		printf("STATUS: MUERTEEEEEEEEEEEEEEEEE\n");
-		struct almacenamiento *holi;
+		struct almacenamiento *almaux;
 		// PASAR DEL LINKEDLIST A ARRAY
 		for(e=0; e<4; e++){
 			envios[e].capacidad=cap[e].capacidad;
 			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
-			holi=&cap[e];
+			almaux=&cap[e];
 			for(i=0;i<envios[e].capacidad;i++){
 				envios[e].personas[i]=holi->actualPersona;
-				printf("STATUS: ESTAMOS AQUI HAH 2, W.R=%d, cap[%d]=%p\n", world_rank, i, holi);
-				holi=cap[e].siguienteAlma;
+				almaux=cap[e].siguienteAlma;
 				//cap[e]=*cap[e].siguienteAlma;
-				printf("STATUS: ESTAMOS AQUI HAH 3, W.R=%d, cap[%d]=%p\n", world_rank, i, holi);
 			}
 		}
 
+		if(world_rank==0){
+			for(e=0; e<4; e++){
+				printf("Capacidad=%d\n", envios[e].capacidad);
+				for(i=0;i<envios[e].capacidad;i++){
+					printf("envios[%d].personas[%d]=%d\n", e, i, envios[e].personas[i].edad);
+		}
 
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
 		MPI_Send(&envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD);
