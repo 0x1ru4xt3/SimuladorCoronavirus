@@ -154,9 +154,9 @@ void crearTipo(Persona *pers, MPI_Datatype *MPI_DATOS){
 	MPI_Get_address(&pers->edad,&dir1);
 	MPI_Get_address(&pers->estado,&dir2);
 	dist[1]=dir2-dir1;
-	MPI_Get_address(pers->diasContaminado,&dir2);
+	MPI_Get_address(&pers->diasContaminado,&dir2);
 	dist[2]=dir2-dir1;
-    MPI_Get_address(pers->probMuerte,&dir2);
+    MPI_Get_address(&pers->probMuerte,&dir2);
 	dist[3]=dir2-dir1;
     MPI_Get_address(pers->pos,&dir2);
 	dist[4]=dir2-dir1;
