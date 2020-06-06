@@ -161,7 +161,6 @@ void crearTipoEnvio(Envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype *persona
 
 // CREAR DATATYPE PARA MANDAR
 void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS){
-    printf("STATUS: crearTipoPersona 0...\n");
 	//Declaracion de los tipos del struct
 	MPI_Datatype tipo[2];
 	tipo[0]=MPI_INT;
@@ -170,8 +169,6 @@ void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS){
     tipo[3]=MPI_FLOAT;
     tipo[4]=MPI_INT;
     tipo[5]=MPI_INT;
-
-    printf("STATUS: crearTipoPersona 1...\n");
 
 	//Declaracion de los tamaños de el struct
 	int tam[2];
@@ -182,25 +179,21 @@ void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS){
 	tam[4]=2;//array de dos posciones de int
     tam[5]=2;
 
-    printf("STATUS: crearTipoPersona 2...\n");
-
 	//Declaracion de las distancias
 	MPI_Aint dist[6],dir1,dir2;
 	dist[0]=0;
-	MPI_Get_address(*pers->edad,&dir1);
-	MPI_Get_address(*pers->estado,&dir2);
+	MPI_Get_address(&pers->edad,&dir1);
+	MPI_Get_address(&pers->estado,&dir2);
 	dist[1]=dir2-dir1;
 	MPI_Get_address(&pers->diasContaminado,&dir2);
 	dist[2]=dir2-dir1;
-    printf("STATUS: crearTipoPersona 3...\n");
+    printf("STATUS: crearTipoPersona 3..., DIR DE MEMORIA: %p\n",&pers->edad);
     MPI_Get_address(&pers->probMuerte,&dir2);
 	dist[3]=dir2-dir1;
     MPI_Get_address(pers->pos,&dir2);
 	dist[4]=dir2-dir1;
     MPI_Get_address(pers->vel,&dir2);
     dist[5]=dir2-dir1;
-
-    printf("STATUS: crearTipoPersona 4...\n");
 
 	//Creacion del tipo
 	MPI_Type_create_struct(6,tam,dist,tipo,MPI_DATOS);
