@@ -9,6 +9,13 @@
 #define SEED 0
 #define CAPACIDADINICIAL 5
 
+struct almacenamiento{
+   int capacidad;
+   struct persona actualPersona;
+   struct almacenamiento *siguienteAlma;
+   struct almacenamiento *ultimo;
+};
+
 // CALCULAR LA MEDIA DE EDAD
 // (Par: struct persona, int poblacion actual)
 int mediaEdad(struct persona *per, int pobl){

@@ -14,13 +14,6 @@
  	int vel[2];
  };
 
- struct almacenamiento{
- 	int capacidad;
- 	struct persona actualPersona;
- 	struct almacenamiento *siguienteAlma;
- 	struct almacenamiento *ultimo;
- };
-
  struct envio{
  	int capacidad;
  	struct persona *personas;
@@ -28,7 +21,6 @@
 
  typedef struct persona Persona;
  typedef struct envio Envio;
- typedef struct almacenamiento Almacenamiento;
 
  // CREAR PERSONA
  struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev,int posX, int posY);
@@ -49,4 +41,4 @@
 void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS);
 
 // CREAR DATATYPE PARA MANDAR
-void crearTipoEnvio(envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype persona);
+void crearTipoEnvio(Envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype persona);
