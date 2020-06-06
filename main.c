@@ -216,10 +216,6 @@ int main(int argc, char** argv) {
 		MPI_Isend(&persVirtual, 1, dataPersona, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
 
 		MPI_Irecv(&persVirtual, 1, dataPersona, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request)
-		while()
-
-		// ESPERAR A QUE TODOS LOS NODOS RECIBAN Y ENVIEN
-		MPI_Waitall(MPI_COMM_WORLD);
 
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
