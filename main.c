@@ -109,12 +109,6 @@ int main(int argc, char** argv) {
 	MPI_Datatype dataPersona;
 	crearTipoPersona(&persVirtual, &dataPersona);
 
-	// BARRERA
-	MPI_Barrier(MPI_COMM_WORLD);
-
-	if(world_rank == 0)
-		printf("STATUS: Despuesmalloc...\n");
-
 	MPI_Datatype dataEnvio;
 	struct envio enviotipo;
 	crearTipoEnvio(&enviotipo,&dataEnvio,&dataPersona);
@@ -203,9 +197,15 @@ int main(int argc, char** argv) {
 		for(i=0;i<4;i++)
 			cap[i].capacidad=0;
 
+		if(world_rank == 0)
+			printf("STATUS: ESTAMOS AQUI HAH\n");
+
 		for(i=0; i<pobNodo; i++){
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
 			struct almacenamiento nuev;
+
+			if(world_rank == 0)
+				printf("STATUS: ESTAMOS AQUI HAH2\n");
 
 			if(seMueve != 0){
 				cap[seMueve-1].capacidad++;
@@ -215,6 +215,9 @@ int main(int argc, char** argv) {
 				aux.siguienteAlma = &nuev;
 				cap[seMueve-1].ultimo = &nuev;
 			}
+
+			if(world_rank == 0)
+				printf("STATUS: ESTAMOS AQUI HAH3\n");
 
 			// SI LA PERSONA CAMBIA DE NODO
 			if(seMueve != 0){
@@ -233,6 +236,9 @@ int main(int argc, char** argv) {
 			}
 		}
 
+		if(world_rank == 0)
+			printf("STATUS: ESTAMOS AQUI HAH 4\n");
+
 		// PASAR DEL LINKEDLIST A ARRAY
 		for(e=0; e<4; e++){
 			envios[e].capacidad=cap[e].capacidad;
@@ -242,6 +248,9 @@ int main(int argc, char** argv) {
 				cap[e]=*cap[e].siguienteAlma;
 			}
 		}
+
+		if(world_rank == 0)
+			printf("STATUS: ESTAMOS AQUI HAH 5\n");
 
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
 		MPI_Send(&envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD);

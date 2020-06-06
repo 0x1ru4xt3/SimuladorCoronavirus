@@ -130,12 +130,9 @@ int matarPersona(Persona *per){
 
 // CREAR DATATYPE PARA MANDAR
 void crearTipoEnvio(Envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype *persona){
-    printf("STATUS: crearTipoEnvio 0...\n");
     MPI_Datatype tipo[2];
     tipo[0]=MPI_INT;
 	tipo[1]=*persona;
-
-    printf("STATUS: crearTipoEnvio 1...\n");
 
     int tam[2];
 	tam[0]=1;
@@ -144,18 +141,13 @@ void crearTipoEnvio(Envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype *persona
     MPI_Aint dist[6],dir1,dir2;
 	dist[0]=0;
 
-    printf("STATUS: crearTipoEnvio 2...\n");
-
 	MPI_Get_address(&envio->capacidad, &dir1);
 	MPI_Get_address(envio->personas, &dir2);
-
-    printf("STATUS: crearTipoEnvio 3...\n");
 
 	dist[1]=dir2-dir1;
 
     //Creacion del tipo
     MPI_Type_create_struct(2,tam,dist,tipo,MPI_DATOS);
-    printf("STATUS: crearTipoEnvio 4...\n");
     MPI_Type_commit(MPI_DATOS);
 }
 
