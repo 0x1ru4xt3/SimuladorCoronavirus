@@ -227,8 +227,7 @@ int main(int argc, char** argv) {
 			}*/
 		}
 
-		if(world_rank == 0)
-			printf("STATUS: ESTAMOS AQUI HAH 1\n");
+		printf("STATUS: ESTAMOS AQUI HAH 1\n");
 
 		// PASAR DEL LINKEDLIST A ARRAY
 		for(e=0; e<4; e++){
@@ -240,8 +239,7 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		if(world_rank == 0)
-			printf("STATUS: ESTAMOS AQUI HAH 2\n");
+		printf("STATUS: ESTAMOS AQUI HAH 2\n");
 
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
 		MPI_Send(&envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD);
