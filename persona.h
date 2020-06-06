@@ -21,7 +21,7 @@
 
  // MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
  // (Par: struct persona)
- void moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY, int limiteAncho, int limiteAlto);
+ int moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY, int limiteAncho, int limiteAlto);
 
  // DECISION DE INFECTAR UNA PERSONA por RADIO DE CONTAGIADO
  // (Par: struct persona, ints radio del infectado)
@@ -30,3 +30,6 @@
  // DECISION DE MUERTE DE UNA PERSONA
  // (Par: struct persona)
  int matarPersona(Persona *per);
+
+// CREAR DATATYPE PARA MANDAR
+ void crear_tipo(int *tamano,float *arrayfloat,int *array,MPI_Datatype *MPI_DATOS);

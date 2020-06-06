@@ -126,3 +126,43 @@ int matarPersona(Persona *per){
 		}
 	}
 }
+
+// CREAR DATATYPE PARA MANDAR
+void crearTipo(Persona *pers, MPI_Datatype *MPI_DATOS){
+	//Declaracion de los tipos del struct
+	MPI_Datatype tipo[6];
+	tipo[0]=MPI_INT;
+	tipo[1]=MPI_INT;
+	tipo[2]=MPI_INT;
+    tipo[3]=MPI_FLOAT;
+    tipo[4]=MPI_INT;
+    tipo[5]=MPI_INT;
+
+	//Declaracion de los tamaños de el struct
+	int tam[6];
+	tam[0]=1;
+	tam[1]=1;
+	tam[2]=1;
+    tam[3]=1;
+	tam[4]=2;//array de dos posciones de int
+    tam[5]=2;
+
+	//Declaracion de las distancias
+	MPI_Aint dist[6],dir1,dir2;
+	dist[0]=0;
+	MPI_Get_address(pers->edad,&dir1);
+	MPI_Get_address(pers->estado,&dir2);
+	dist[1]=dir2-dir1;
+	MPI_Get_address(pers->diasContaminado,&dir2);
+	dist[2]=dir2-dir1;
+    MPI_Get_address(pers->probMuerte,&dir2);
+	dist[3]=dir2-dir1;
+    MPI_Get_address(pers->pos,&dir2);
+	dist[4]=dir2-dir1;
+    MPI_Get_address(pers->vel,&dir2);
+    dist[5]=dir2-dir1;
+
+	//Creacion del tipo
+	MPI_Type_create_struct(6,tam,dist,tipo,MPI_DATOS);
+	MPI_Type_commit(MPI_DATOS);
+}

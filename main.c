@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
 	int muertosRonda, curadosRonda, contagiadosRonda;
 	int muertosNodo, curadosNodo, contagiadosNodo, pobNodo;
 	int desv = 0;
-	int len, samatao;
+	int len, samatao, seMueve;
 	char linea1[30];
 	int salida = 0;
 
@@ -98,6 +98,10 @@ int main(int argc, char** argv) {
 
 	// PARA MPI
  	int *proc=malloc(world_size*sizeof(int)); //Con este puntero guardaremos los nodos que van a trabajar.
+	struct Persona persVirtual = crearPersona(100, 0, 0 , 0, 0, 0);
+	persVirtual.edad=101;
+	MPI_Datatype dataPersona;
+	crearTipo(&persVirtual, &dataPersona);
 
 	// Todos los nodos van a funcionar.
 	for(i=0;i<world_size;i++){
@@ -181,12 +185,12 @@ int main(int argc, char** argv) {
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
 
 			switch (seMueve) {
-				case 1: MPI_Send(&personas[i], 1, persona, world_rank-1, world_rank, MPI_COMM_WORLD); break;
-				case 2: MPI_Send(&personas[i], 1, persona, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD); break;
-				case 3: MPI_Send(&personas[i], 1, persona, world_rank+1, world_rank, MPI_COMM_WORLD); break;
-				case 4: MPI_Send(&personas[i], 1, persona, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD); break;
-				default
+				case 1: MPI_Send(&personas[i], 1, dataPersona, world_rank-1, world_rank, MPI_COMM_WORLD); break;
+				case 2: MPI_Send(&personas[i], 1, dataPersona, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD); break;
+				case 3: MPI_Send(&personas[i], 1, dataPersona, world_rank+1, world_rank, MPI_COMM_WORLD); break;
+				case 4: MPI_Send(&personas[i], 1, dataPersona, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD); break;
 			}
+
 
 			if(seMueve != 0){
 				// Si se tiene que ir a otro nodo
@@ -204,6 +208,12 @@ int main(int argc, char** argv) {
 				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
 			}
 		}
+
+		// Mandar a los demas que tienen que dejar de escuchar
+		MPI_Send(&persVirtual, 1, dataPersona, world_rank-1, world_rank, MPI_COMM_WORLD);
+		MPI_Send(&persVirtual, 1, dataPersona, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
+		MPI_Send(&persVirtual, 1, dataPersona, world_rank+1, world_rank, MPI_COMM_WORLD);
+		MPI_Send(&persVirtual, 1, dataPersona, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
 
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -265,6 +275,7 @@ int main(int argc, char** argv) {
 			muertosTotales += muertosRonda;
 		}
 
+		printf("%s\n", );
 		// RULAR TIEMPO
 		diasTranscurridos++;
 
