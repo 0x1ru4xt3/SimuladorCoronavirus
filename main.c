@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
 
 	// PARA MPI
  	int *proc=malloc(world_size*sizeof(int)); //Con este puntero guardaremos los nodos que van a trabajar.
-	struct Persona persVirtual = crearPersona(100, 0, 0 , 0, 0, 0);
+	struct persona persVirtual = crearPersona(100, 0, 0 , 0, 0, 0);
 	persVirtual.edad=101;
 	MPI_Datatype dataPersona;
 	crearTipo(&persVirtual, &dataPersona);
@@ -275,7 +275,6 @@ int main(int argc, char** argv) {
 			muertosTotales += muertosRonda;
 		}
 
-		printf("%s\n", );
 		// RULAR TIEMPO
 		diasTranscurridos++;
 
