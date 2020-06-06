@@ -151,8 +151,8 @@ void crearTipo(Persona *pers, MPI_Datatype *MPI_DATOS){
 	//Declaracion de las distancias
 	MPI_Aint dist[6],dir1,dir2;
 	dist[0]=0;
-	MPI_Get_address(pers->edad,&dir1);
-	MPI_Get_address(pers->estado,&dir2);
+	MPI_Get_address(&pers->edad,&dir1);
+	MPI_Get_address(&pers->estado,&dir2);
 	dist[1]=dir2-dir1;
 	MPI_Get_address(pers->diasContaminado,&dir2);
 	dist[2]=dir2-dir1;
