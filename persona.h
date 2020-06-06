@@ -41,4 +41,4 @@
 void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS);
 
 // CREAR DATATYPE PARA MANDAR
-void crearTipoEnvio(Envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype persona);
+void crearTipoEnvio(Envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype *persona);
