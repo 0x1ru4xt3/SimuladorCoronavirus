@@ -233,7 +233,7 @@ int main(int argc, char** argv) {
 		for(e=0; e<4; e++){
 			envios[e].capacidad=cap[e].capacidad;
 			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
-			holi=*cap[e];
+			holi=&cap[e];
 			for(i=0;i<envios[e].capacidad;i++){
 				envios[e].personas[i]=&holi.actualPersona;
 				printf("STATUS: ESTAMOS AQUI HAH 2, W.R=%d, cap[%d]=%p\n", world_rank, i, holi);
