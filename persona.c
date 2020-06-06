@@ -187,7 +187,7 @@ void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS){
 	dist[1]=dir2-dir1;
 	MPI_Get_address(&pers->diasContaminado,&dir2);
 	dist[2]=dir2-dir1;
-    printf("STATUS: crearTipoPersona 3..., DIR DE MEMORIA: %p\n",&pers->edad);
+    printf("STATUS: crearTipoPersona 3..., DIR DE MEMORIA: %p\n",&dir1);
     MPI_Get_address(&pers->probMuerte,&dir2);
 	dist[3]=dir2-dir1;
     MPI_Get_address(pers->pos,&dir2);
