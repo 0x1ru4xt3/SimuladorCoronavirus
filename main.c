@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include "persona.h"
 #include "probabilidad.h"
 
@@ -67,6 +68,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,"Error de parámetros: \n\t- La probabilidad de contagio debe estar comprendido entre 0 y 1.\n\t- El tiempo a simular debe ser mayor que 1.\n\t- El batch no puede ser mayor que el tiempo a simular.\n\t- El radio de contagio debe ser menor que el tamaino del lienzo.\n");
 		exit(1);
 	}
+
+	// INICIO TIEMPO DE EJECUCION
+	clock_t inicio = clock();
 
 	if(world_rank == 0)
 		printf("STATUS: Inicializando variables...\n");
@@ -184,7 +188,7 @@ int main(int argc, char** argv) {
 				default
 			}
 
-			if(seMueve != 0){	
+			if(seMueve != 0){
 				// Si se tiene que ir a otro nodo
 				for(e=i; e<pobNodo-1; e++)
 					personas[e] = personas[e+1];
@@ -286,12 +290,17 @@ int main(int argc, char** argv) {
 		if(salida) break;
 	}
 
+	// FIN TIEMPO DE EJECUCION
+	clock_t fin = clock();
+	double tiempoTotal = (double)(inicio - fin) / CLOCKS_PER_SEC;
+
 	// FINALIZANDO PROGRAMA
 	if(world_rank == 0){
 		printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
-
+		printf("STATUS: Tiempo de ejecucion en paralelo: %.2f\n", tiempoTotal);
 		// LIBERAR MEMORIA, CERRAR ARCHIVOS y CERRAR MPI AL ACABAR PROGRAMA
 		printf("STATUS: Liberando memoria alocada...\n");
+		printf("STATUS: Fin del programa.\n");
 	}
 
 	free(personas);
