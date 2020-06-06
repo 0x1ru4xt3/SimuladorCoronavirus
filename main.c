@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
 
 	// BARRERA
 	MPI_Barrier(MPI_COMM_WORLD);
-	
+
 	if(world_rank == 0)
 		printf("STATUS: Antemalloc...\n");
 
@@ -253,10 +253,10 @@ int main(int argc, char** argv) {
 		MPI_Send(&envios[3], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
 
 		// RECIBIR ARRAIS DE PERSONAS DE NODOS COLINDANTES
-		MPI_Recv(&envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD);
-		MPI_Recv(&envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD);
-		MPI_Recv(&envios[2], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD);
-		MPI_Recv(&envios[3], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD);
+		MPI_Recv(&envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(&envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(&envios[2], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		MPI_Recv(&envios[3], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
 		// JUNTAR LOS CUATRO ARRAYS RECIBIDOS CON EL ARRAY QUE TIENE EL NODO
 		for (i=0; i<4; i++){
