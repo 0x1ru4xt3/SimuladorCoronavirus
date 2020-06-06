@@ -90,13 +90,14 @@ int moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY,
 // DECISION DE INFECTAR UNA PERSONA por RADIO DE CONTAGIADO
 // (Par: struct persona, ints radio del infectado)
 int infecPersona(Persona *per, int rangox, int rangoy, int radio, float probRadio){
+    float deci;
 	// SI NO ESTA INFECTADO y NO LO HA ESTADO
 	if(per->estado == 0){
 		// SI ESTA DENTRO DEL RANGO DE EJE X DEL INFECTADO
 		if(per->pos[0] <= rangox+radio && per->pos[0] >= rangox-radio){
 			// SI ESTA DENTRO DEL RANGO DE EJE Y DEL INFECTADO
 			if(per->pos[1] <= rangoy+radio && per->pos[1] >= rangoy-radio){
-				float deci = (rand()%100) /100.0;
+				deci = (rand()%100) /100.0;
 				if(deci>probRadio){
 					per->estado = 1;
 					return 1;
@@ -111,6 +112,7 @@ int infecPersona(Persona *per, int rangox, int rangoy, int radio, float probRadi
 // (Par: struct persona)
 int matarPersona(Persona *per){
 	float deci = calcProb();
+    printf("FUNCION matarPersona: deci=%.2f, per-probMuerte=%.2f\n", deci, per->probMuerte);
 	if(deci <= per->probMuerte)
 		return 1;
 	else {

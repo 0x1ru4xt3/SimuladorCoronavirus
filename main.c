@@ -199,9 +199,9 @@ int main(int argc, char** argv) {
 			if(diasTranscurridos%BATX==0){
 				// ESCRIBIR EN FICHERO CON MPI
 				len = sprintf(linea1, "%d,%d,%d:", personas[i].pos[0], personas[i].pos[1], personas[i].estado);
-				//offset1 = (world_rank*len*pobNodo) + (len*i);
-				//MPI_File_seek(posiFile, offset1, MPI_SEEK_SET);
-				//MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
+				offset1 = (world_rank*len*pobNodo) + (len*i);
+				MPI_File_seek(posiFile, offset1, MPI_SEEK_SET);
+				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
 			}
 		}
 
@@ -211,9 +211,9 @@ int main(int argc, char** argv) {
 		// FICHERO: SALTAR DE LINEA TRAS MOVER TODAS LAS PERSONAS
 		if(diasTranscurridos%BATX==0){
 			if(world_rank == 0) {
-				//snprintf(linea1, sizeof("\n"), "\n");
-				//MPI_File_seek(posiFile, offset1, MPI_SEEK_END);
-				//MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
+				snprintf(linea1, sizeof("\n"), "\n");
+				MPI_File_seek(posiFile, offset1, MPI_SEEK_END);
+				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
 			}
 		}
 
