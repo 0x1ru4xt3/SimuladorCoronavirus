@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
 		if(world_rank==0){
 			for(e=0; e<4; e++){
 				printf("Capacidad=%d\n", envios[e].capacidad);
-				for(i=0;i<envios[e].capacidad;i++){
+				for(i=0;i<envios[e].capacidad;i++)
 					printf("envios[%d].personas[%d]=%d\n", e, i, envios[e].personas[i].edad);
 		}
 
