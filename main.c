@@ -15,6 +15,10 @@ struct almacenamiento{
    struct almacenamiento *siguienteAlma;
    struct almacenamiento *ultimo;
 };
+/*
+204 y 234 asteriscos,
+
+^*/
 
 // CALCULAR LA MEDIA DE EDAD
 // (Par: struct persona, int poblacion actual)
@@ -201,7 +205,7 @@ int main(int argc, char** argv) {
 				cap[seMueve-1].capacidad++;
 				nuev.actualPersona = personas[i];
 				struct almacenamiento aux;
-				aux=cap[seMueve-1].ultimo;
+				aux=*cap[seMueve-1].ultimo;
 				aux.siguienteAlma = &nuev;
 				cap[seMueve-1].ultimo = &nuev;
 			}

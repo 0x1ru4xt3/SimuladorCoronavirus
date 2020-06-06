@@ -132,7 +132,7 @@ int matarPersona(Persona *per){
 void crearTipoEnvio(Envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype *persona){
     MPI_Datatype tipo[2];
     tipo[0]=MPI_INT;
-	tipo[1]=persona;
+	tipo[1]=&persona;
 
     int tam[2];
 	tam[0]=1;
