@@ -227,19 +227,20 @@ int main(int argc, char** argv) {
 			}*/
 		}
 
+		printf("STATUS: MUERTEEEEEEEEEEEEEEEEE\n");
 
 		// PASAR DEL LINKEDLIST A ARRAY
 		for(e=0; e<4; e++){
 			envios[e].capacidad=cap[e].capacidad;
-			printf("STATUS: envios[e].capacidad = %d\n", envios[e].capacidad);
 			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
 			for(i=0;i<envios[e].capacidad;i++){
 				envios[e].personas[i]=cap[e].actualPersona;
+				printf("STATUS: ESTAMOS AQUI HAH 2\n");
 				cap[e]=*cap[e].siguienteAlma;
+				printf("STATUS: ESTAMOS AQUI HAH 3\n");
 			}
 		}
 
-		printf("STATUS: ESTAMOS AQUI HAH 2\n");
 
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
 		MPI_Send(&envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD);
