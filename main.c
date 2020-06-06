@@ -9,18 +9,6 @@
 #define SEED 0
 #define CAPACIDADINICIAL 5
 
-struct almacenamiento{
-	int capacidad;
-	struct persona actualPersona;
-	struct almacenamiento *siguienteAlma;
-	struct almacenamiento *ultimo;
-};
-
-struct envio{
-	int capacidad;
-	struct persona *personas;
-};
-
 // CALCULAR LA MEDIA DE EDAD
 // (Par: struct persona, int poblacion actual)
 int mediaEdad(struct persona *per, int pobl){
@@ -194,7 +182,7 @@ int main(int argc, char** argv) {
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 		struct envio envios[4];
-		struct almacenamiento *cap[4];
+		struct almacenamiento cap[4];
 		for(i=0;i<4;i++)
 			cap[i].capacidad=0;
 
@@ -204,7 +192,7 @@ int main(int argc, char** argv) {
 
 			if(seMueve != 0){
 				cap[seMueve-1].capacidad++;
-				nuev.actualPersona = persona[i];
+				nuev.actualPersona = personas[i];
 				cap[seMueve-1].ultimo.siguienteAlma = nuev;
 				cap[seMueve-1].ultimo = nuev;
 			}
@@ -237,21 +225,21 @@ int main(int argc, char** argv) {
 		}
 
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
-		MPI_Isend(envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD, &request);
-		MPI_Isend(envios[1], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
-		MPI_Isend(envios[2], 1, dataEnvio, world_rank+1, world_rank, MPI_COMM_WORLD, &request);
-		MPI_Isend(envios[3], 1, dataEnvio, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
+		MPI_Isend(&envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD, &request);
+		MPI_Isend(&envios[1], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
+		MPI_Isend(&envios[2], 1, dataEnvio, world_rank+1, world_rank, MPI_COMM_WORLD, &request);
+		MPI_Isend(&envios[3], 1, dataEnvio, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
 
 		// RECIBIR ARRAIS DE PERSONAS DE NODOS COLINDANTES
-		MPI_Irecv(envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
-		MPI_Irecv(envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
-		MPI_Irecv(envios[2], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
-		MPI_Irecv(envios[3], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
+		MPI_Irecv(&envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
+		MPI_Irecv(&envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
+		MPI_Irecv(&envios[2], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
+		MPI_Irecv(&envios[3], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
 
 		// JUNTAR LOS CUATRO ARRAYS RECIBIDOS CON EL ARRAY QUE TIENE EL NODO
 		for (i=0; i<4; i++){
 			for (e=0; e<envios[i].capacidad; e++){
-				pushPersona(personas, longitud, envios[i].personas[e], &longitud, &capacidad;
+				pushPersona(personas, longitud, envios[i].personas[e], &longitud, &capacidad);
 				pobNodo++;
 			}
 		}
