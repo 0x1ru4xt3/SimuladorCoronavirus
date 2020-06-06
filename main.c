@@ -16,6 +16,11 @@ struct almacenamiento{
 	struct *almacenamiento ultimo;
 }
 
+struct envio{
+	int capacidad;
+	struct *persona personas;
+}
+
 // CALCULAR LA MEDIA DE EDAD
 // (Par: struct persona, int poblacion actual)
 int mediaEdad(struct persona *per, int pobl){
@@ -103,7 +108,11 @@ int main(int argc, char** argv) {
 	struct persona persVirtual = crearPersona(100, 1, 1, 1, 1, 1);
 	persVirtual.edad=101;
 	MPI_Datatype dataPersona;
-	crearTipo(&persVirtual, &dataPersona);
+	crearTipoPersona(&persVirtual, &dataPersona);
+
+	MPI_Datatype dataEnvio;
+	struct envio enviotipo;
+	crearTipoEnvio(&enviotipo,&dataEnvio,&dataPersona);
 	MPI_Request request;
 
 	// Todos los nodos van a funcionar.
@@ -184,29 +193,24 @@ int main(int argc, char** argv) {
 		contagiadosNodo = 0;
 
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
-		struct almacenamiento cap1;
-		struct almacenamiento cap2;
-		struct almacenamiento cap3;
-		struct almacenamiento cap4;
-		cap1.capacidad=0;
-		cap2.capacidad=0;
-		cap3.capacidad=0;
-		cap4.capacidad=0;
+		struct envio envios[4];
+		struct almacenamiento *cap[4];
+		for(i=0;i<4;i++)
+			cap[i].capacidad=0;
 
 		for(i=0; i<pobNodo; i++){
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
-
-			switch (seMueve) {
-				case 1: cap1.capacidad++;
-				struct
-					break;
-				case 2: cap2.capacidad++; break;
-				case 3: cap3.capacidad++; break;
-				case 4: cap4.capacidad++; break;
-			}
+			struct almacenamiento nuev;
 
 			if(seMueve != 0){
-				// Si se tiene que ir a otro nodo
+				cap[seMueve-1].capacidad++;
+				nuev.actualPersona = persona[i];
+				cap[seMueve-1].ultimo.siguienteAlma = nuev;
+				cap[seMueve-1].ultimo = nuev;
+			}
+
+			// SI LA PERSONA CAMBIA DE NODO
+			if(seMueve != 0){
 				for(e=i; e<pobNodo-1; e++)
 					personas[e] = personas[e+1];
 				pobNodo--;
@@ -222,13 +226,35 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		// Mandar a los demas que tienen que dejar de escuchar
-		MPI_Isend(&persVirtual, 1, dataPersona, world_rank-1, world_rank, MPI_COMM_WORLD, &request);
-		MPI_Isend(&persVirtual, 1, dataPersona, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
-		MPI_Isend(&persVirtual, 1, dataPersona, world_rank+1, world_rank, MPI_COMM_WORLD, &request);
-		MPI_Isend(&persVirtual, 1, dataPersona, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
+		// PASAR DEL LINKEDLIST A ARRAY
+		for(e=0; e<4; e++){
+			envios[e].capacidad=cap[e].capacidad;
+			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
+			for(i=0;i<envios[e].capacidad;i++){
+				envios[e].personas[i]=cap[e].actualPersona;
+				cap[e]=cap[e].siguienteAlma;
+			}
+		}
 
-		MPI_Irecv(&persVirtual, 1, dataPersona, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
+		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
+		MPI_Isend(envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD, &request);
+		MPI_Isend(envios[1], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
+		MPI_Isend(envios[2], 1, dataEnvio, world_rank+1, world_rank, MPI_COMM_WORLD, &request);
+		MPI_Isend(envios[3], 1, dataEnvio, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
+
+		// RECIBIR ARRAIS DE PERSONAS DE NODOS COLINDANTES
+		MPI_Irecv(envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
+		MPI_Irecv(envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
+		MPI_Irecv(envios[2], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
+		MPI_Irecv(envios[3], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
+
+		// JUNTAR LOS CUATRO ARRAYS RECIBIDOS CON EL ARRAY QUE TIENE EL NODO
+		for (i=0; i<4; i++){
+			for (e=0; e<envios[i].capacidad; e++){
+				pushPersona(personas, longitud, envios[i].personas[e], &longitud, &capacidad;
+				pobNodo++;
+			}
+		}
 
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);

@@ -129,9 +129,26 @@ int matarPersona(Persona *per){
 }
 
 // CREAR DATATYPE PARA MANDAR
-void crearTipo(Persona *pers, MPI_Datatype *MPI_DATOS){
+void crearTipoEnvio(envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype persona){
+    MPI_Datatype tipo[2];
+    tipo[0]=MPI_INT;
+	tipo[1]=persona;
+
+    int tam[2];
+	tam[0]=1;
+	tam[1]=1;
+
+    MPI_Aint dist[6],dir1,dir2;
+	dist[0]=0;
+	MPI_Get_address(&envio->capacidad, &dir1);
+	MPI_Get_address(envio->personas, &dir2);
+	dist[1]=dir2-dir1;
+}
+
+// CREAR DATATYPE PARA MANDAR
+void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS){
 	//Declaracion de los tipos del struct
-	MPI_Datatype tipo[6];
+	MPI_Datatype tipo[2];
 	tipo[0]=MPI_INT;
 	tipo[1]=MPI_INT;
 	tipo[2]=MPI_INT;
@@ -140,7 +157,7 @@ void crearTipo(Persona *pers, MPI_Datatype *MPI_DATOS){
     tipo[5]=MPI_INT;
 
 	//Declaracion de los tamaños de el struct
-	int tam[6];
+	int tam[2];
 	tam[0]=1;
 	tam[1]=1;
 	tam[2]=1;
