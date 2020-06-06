@@ -185,12 +185,8 @@ void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS){
 	dist[4]=dir2-dir1;
     MPI_Get_address(pers->vel,&dir2);
     dist[5]=dir2-dir1;
-    printf("STATUS: crearTipoPersona 3...\n");
 
 	//Creacion del tipo
 	MPI_Type_create_struct(6,tam,dist,tipo,MPI_DATOS);
-    printf("STATUS: crearTipoPersona 5...\n");
 	MPI_Type_commit(MPI_DATOS);
-
-    printf("STATUS: crearTipoPersona 6...\n");
 }
