@@ -102,6 +102,7 @@ int main(int argc, char** argv) {
 	persVirtual.edad=101;
 	MPI_Datatype dataPersona;
 	crearTipo(&persVirtual, &dataPersona);
+	MPI_Request request;
 
 	// Todos los nodos van a funcionar.
 	for(i=0;i<world_size;i++){
@@ -145,7 +146,7 @@ int main(int argc, char** argv) {
 	personas = malloc(capacidad*sizeof(struct persona));
 
 	// IMPRESION DE VARIABLES INTRODUCIDAS POR PARAMETRO
-	if(world_rank == 4)
+	if(world_rank == 0)
 		printf("STATUS: DATOS INTRODUCIDOS: \n\tTIEMPO %d\n\tPOBLACION: %d\n\tESCENARIO: %dx%d\n\tRADIO CONTAGIO: %d  PROB DE CONTAGIO RADIO: %.2f\n",
 			TIEMPO, POBLACION, ESCHEIGHT, ESCWIDTH, RADIO, PROBRADIO);
 
@@ -185,12 +186,11 @@ int main(int argc, char** argv) {
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
 
 			switch (seMueve) {
-				case 1: MPI_Send(&personas[i], 1, dataPersona, world_rank-1, world_rank, MPI_COMM_WORLD); break;
-				case 2: MPI_Send(&personas[i], 1, dataPersona, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD); break;
-				case 3: MPI_Send(&personas[i], 1, dataPersona, world_rank+1, world_rank, MPI_COMM_WORLD); break;
-				case 4: MPI_Send(&personas[i], 1, dataPersona, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD); break;
+				case 1: MPI_Isend(&personas[i], 1, dataPersona, world_rank-1, world_rank, MPI_COMM_WORLD, &request); break;
+				case 2: MPI_Isend(&personas[i], 1, dataPersona, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request); break;
+				case 3: MPI_Isend(&personas[i], 1, dataPersona, world_rank+1, world_rank, MPI_COMM_WORLD, &request); break;
+				case 4: MPI_Isend(&personas[i], 1, dataPersona, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request); break;
 			}
-
 
 			if(seMueve != 0){
 				// Si se tiene que ir a otro nodo
@@ -210,10 +210,16 @@ int main(int argc, char** argv) {
 		}
 
 		// Mandar a los demas que tienen que dejar de escuchar
-		MPI_Send(&persVirtual, 1, dataPersona, world_rank-1, world_rank, MPI_COMM_WORLD);
-		MPI_Send(&persVirtual, 1, dataPersona, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
-		MPI_Send(&persVirtual, 1, dataPersona, world_rank+1, world_rank, MPI_COMM_WORLD);
-		MPI_Send(&persVirtual, 1, dataPersona, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
+		MPI_Isend(&persVirtual, 1, dataPersona, world_rank-1, world_rank, MPI_COMM_WORLD, &request);
+		MPI_Isend(&persVirtual, 1, dataPersona, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
+		MPI_Isend(&persVirtual, 1, dataPersona, world_rank+1, world_rank, MPI_COMM_WORLD, &request);
+		MPI_Isend(&persVirtual, 1, dataPersona, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
+
+		MPI_Irecv(&persVirtual, 1, dataPersona, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request)
+		while()
+
+		// ESPERAR A QUE TODOS LOS NODOS RECIBAN Y ENVIEN
+		MPI_Waitall(MPI_COMM_WORLD);
 
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
