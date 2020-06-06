@@ -102,12 +102,21 @@ int main(int argc, char** argv) {
 		contagiadosTotales = 0;
 	}
 
+	// BARRERA
+	MPI_Barrier(MPI_COMM_WORLD);
+	
+	if(world_rank == 0)
+		printf("STATUS: Antemalloc...\n");
+
 	// PARA MPI
  	int *proc=malloc(world_size*sizeof(int)); //Con este puntero guardaremos los nodos que van a trabajar.
 	struct persona persVirtual = crearPersona(100, 1, 1, 1, 1, 1);
 	persVirtual.edad=101;
 	MPI_Datatype dataPersona;
 	crearTipoPersona(&persVirtual, &dataPersona);
+
+	if(world_rank == 0)
+		printf("STATUS: Despuesmalloc...\n");
 
 	MPI_Datatype dataEnvio;
 	struct envio enviotipo;
@@ -238,16 +247,16 @@ int main(int argc, char** argv) {
 		}
 
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
-		MPI_Isend(&envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD, &request);
-		MPI_Isend(&envios[1], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
-		MPI_Isend(&envios[2], 1, dataEnvio, world_rank+1, world_rank, MPI_COMM_WORLD, &request);
-		MPI_Isend(&envios[3], 1, dataEnvio, world_rank+-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD, &request);
+		MPI_Send(&envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD);
+		MPI_Send(&envios[1], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
+		MPI_Send(&envios[2], 1, dataEnvio, world_rank+1, world_rank, MPI_COMM_WORLD);
+		MPI_Send(&envios[3], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
 
 		// RECIBIR ARRAIS DE PERSONAS DE NODOS COLINDANTES
-		MPI_Irecv(&envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
-		MPI_Irecv(&envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
-		MPI_Irecv(&envios[2], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
-		MPI_Irecv(&envios[3], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, &request);
+		MPI_Recv(&envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD);
+		MPI_Recv(&envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD);
+		MPI_Recv(&envios[2], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD);
+		MPI_Recv(&envios[3], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD);
 
 		// JUNTAR LOS CUATRO ARRAYS RECIBIDOS CON EL ARRAY QUE TIENE EL NODO
 		for (i=0; i<4; i++){
