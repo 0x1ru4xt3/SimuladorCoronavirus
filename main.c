@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 
 	MPI_Datatype dataEnvio;
 	struct envio enviotipo;
-	crearTipoEnvio(&enviotipo,&dataEnvio,&dataPersona);
+	//crearTipoEnvio(&enviotipo,&dataEnvio,&dataPersona);
 	MPI_Request request;
 
 	// Todos los nodos van a funcionar.
@@ -272,24 +272,28 @@ int main(int argc, char** argv) {
 		MPI_Barrier(MPI_COMM_WORLD);
 		printf("NODO %d LLEGA HASTA LINEA 273.\n", world_rank);
 
+
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
 		/// BORDE IZQUIERDO
+        crearTipoEnvio(&envios[0],&dataEnvio,&dataPersona);
 		if(NWX != 0)
 			MPI_Send(&envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD);
 		/// BORDE SUPERIOR
+        crearTipoEnvio(&envios[1],&dataEnvio,&dataPersona);
 		if(NWY != 0)
 			MPI_Send(&envios[1], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
 		/// BORDE DERECHO
+        crearTipoEnvio(&envios[2],&dataEnvio,&dataPersona);
 		if(NWX+nX != ESCWIDTH)
 			MPI_Send(&envios[2], 1, dataEnvio, world_rank+1, world_rank, MPI_COMM_WORLD);
 		/// BORDE INFERIOR
+        crearTipoEnvio(&envios[3],&dataEnvio,&dataPersona);
 		if(NWY+nY != ESCHEIGHT)
 			MPI_Send(&envios[3], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
 
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
 		printf("NODO %d LLEGA HASTA ENVIAR.\n", world_rank);
-
 
 		// RECIBIR ARRAIS DE PERSONAS DE NODOS COLINDANTES
 		if((NWX == 0 && NWY == 0) || (NWX == 0 && NWY == ESCHEIGHT-nY) || (NWY == 0 && NWX == ESCWIDTH-nX) || (NWY == ESCHEIGHT-nY && NWX == ESCWIDTH-nX)){
