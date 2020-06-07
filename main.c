@@ -18,7 +18,7 @@ struct almacenamiento{
 };
 /*
 204 y 234 asteriscos,
-
+pobNodo==capacidad
 ^*/
 
 // CALCULAR LA MEDIA DE EDAD
@@ -170,6 +170,12 @@ int main(int argc, char** argv) {
 		//Hay que llevar un control de la longitud y del tamano actual de todos los arrays (MENUDO MARRON)
 		pushPersona(personas,longitud,persaux,&longitud,&capacidad);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
 	}
+  //Comprobación de que se crea correctamente el array con las personas.
+  if(world_rank==0){
+    	for(i=0; i<capacidad; i++){
+          printf("La persona %d tiene la siguiente edad: %d \n", i,personas[i].edad);
+      }
+  }
 
 	// PRIMER INFECTADO! Ahora el primer infectado sera el primero creado.
 	if(world_rank == 0){
@@ -201,9 +207,11 @@ int main(int argc, char** argv) {
 		for(i=0; i<pobNodo; i++){
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
 			struct almacenamiento nuev;
+      //Comprobacion de que no le ha pasado nada al array de personas.
+      if(world_rank==0)
+        printf("Edad de persona[%d]=%d\n",i,personas[i].edad);
 
 			if(seMueve != 0){
-        printf("La edad de la persona es: %d \n",personas[i].edad);
 				cap[seMueve-1].capacidad++;
 				nuev.actualPersona = personas[i];
 		        //memcpy(&nuev.actualPersona,&personas[i],sizeof(struct persona));
