@@ -203,7 +203,8 @@ int main(int argc, char** argv) {
 
 			if(seMueve != 0){
 				cap[seMueve-1].capacidad++;
-				nuev.actualPersona = personas[i];
+				//nuev.actualPersona = personas[i];
+        memcpy(&nuev.actualPersona,&personas[i],sizeof(struct persona));
         printf("\n Edad antes de %d\n",nuev.actualPersona.edad);//Imprimir la edad
 				struct almacenamiento aux;
 				aux=*cap[seMueve-1].ultimo;
