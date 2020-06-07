@@ -257,18 +257,22 @@ int main(int argc, char** argv) {
         crearTipoEnvio(&envios[0],&dataEnvio,&dataPersona);
 		if(NWX != 0)
 			MPI_Send(&envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD);
+			printf("Y llegamos a los sends: 1\n");
 		/// BORDE SUPERIOR
         crearTipoEnvio(&envios[1],&dataEnvio,&dataPersona);
 		if(NWY != 0)
 			MPI_Send(&envios[1], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
+			printf("Y llegamos a los sends: 2\n");
 		/// BORDE DERECHO
         crearTipoEnvio(&envios[2],&dataEnvio,&dataPersona);
 		if(NWX+nX != ESCWIDTH)
 			MPI_Send(&envios[2], 1, dataEnvio, world_rank+1, world_rank, MPI_COMM_WORLD);
+			printf("Y llegamos a los sends: 3\n");
 		/// BORDE INFERIOR
         crearTipoEnvio(&envios[3],&dataEnvio,&dataPersona);
 		if(NWY+nY != ESCHEIGHT)
 			MPI_Send(&envios[3], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
+			printf("Y llegamos a los sends: 4\n");
 
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
