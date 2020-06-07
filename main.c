@@ -208,12 +208,10 @@ int main(int argc, char** argv) {
             cap[i].siguienteAlma=&cap[i];
         }
 
+		// FUNCIONA COMPROBADO
 		for(i=0; i<pobNodo; i++){
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
 			struct almacenamiento nuev;
-
-			if(world_rank==4)
-				printf("Edad=%d, Se mueve=%d\n", personas[i].edad, seMueve);
 
 			if(seMueve != 0){
 				cap[seMueve-1].capacidad++;
@@ -224,21 +222,10 @@ int main(int argc, char** argv) {
                 nuev.ultimo=&nuev;
                 nuev.siguienteAlma=&nuev;
 				struct almacenamiento aux;
-                //if(cap[seMueve-1].ultimo==NULL)
 				aux=*cap[seMueve-1].ultimo;
-				if(world_rank==0)
-					printf("Carabin\n");
-                //cap[seMueve-1]->ultimo=&nuev;
-				cap[seMueve-1].ultimo->siguienteAlma = &nuev;
-				if(world_rank==0)
-					printf("Ya\n");
+				cap[seMueve-1].ultimo->siguienteAlma = &nuev
                 cap[seMueve-1].ultimo->ultimo=&nuev;
-
-                if(world_rank==0)
-                    printf("O Se ha habra quedado aqui\n");
 				cap[seMueve-1].ultimo = &nuev;
-		        if(world_rank==0)
-		          printf("\n Direccion del ultimo %p\n",cap[seMueve-1].ultimo);
 			}
 
 			// SI LA PERSONA CAMBIA DE NODO
@@ -258,17 +245,16 @@ int main(int argc, char** argv) {
 			}*/
 		}
 
-        struct almacenamiento *almaux;
-        almaux=&cap[3];
-        if(world_rank==0){
-	        printf("Vamos a imprimir\n");
-	        for(e=0;e<cap[3].capacidad;e++){
-	            printf("Edad iteracion %d es: %d\n ",e,almaux->actualPersona.edad);
-	            almaux=almaux->siguienteAlma;
-	        }
-	        printf("He llegado hasta aqui\n");
-        }
-
+        // struct almacenamiento *almaux;
+        // almaux=&cap[3];
+        // if(world_rank==0){
+	    //     printf("Vamos a imprimir\n");
+	    //     for(e=0;e<cap[3].capacidad;e++){
+	    //         printf("Edad iteracion %d es: %d\n ",e,almaux->actualPersona.edad);
+	    //         almaux=almaux->siguienteAlma;
+	    //     }
+	    //     printf("He llegado hasta aqui\n");
+        // }
 
 		// PASAR DEL LINKEDLIST A ARRAY
 		for(e=0; e<4; e++){
@@ -276,7 +262,6 @@ int main(int argc, char** argv) {
 			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
 			almaux=&cap[e];
 			for(i=0;i<envios[e].capacidad;i++){
-        //printf("\n Edad antes de %d\n",cap[e].actualPersona.edad);//Imprimir la edad
 				envios[e].personas[i]=almaux->actualPersona;
 				almaux=cap[e].siguienteAlma;
 				//cap[e]=*cap[e].siguienteAlma;
@@ -284,13 +269,8 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		if(world_rank==0){
-			for(e=0; e<4; e++){
-				printf("Capacidad=%d\n", envios[e].capacidad);
-				for(i=0;i<envios[e].capacidad;i++)
-					printf("envios[%d].personas[%d]=%d\n", e, i, envios[e].personas[i].edad);
-			}
-		}
+		// BARRERA
+		MPI_Barrier(MPI_COMM_WORLD);
 
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
 		/// BORDE IZQUIERDO
