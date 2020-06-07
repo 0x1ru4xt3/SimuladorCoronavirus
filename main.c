@@ -201,9 +201,9 @@ int main(int argc, char** argv) {
 		for(i=0; i<pobNodo; i++){
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
 			struct almacenamiento nuev;
-			
+
 			if(seMueve != 0){
-        printf("La edad de la persona es: %d \n",persona[i].edad);
+        printf("La edad de la persona es: %d \n",personas[i].edad);
 				cap[seMueve-1].capacidad++;
 				nuev.actualPersona = personas[i];
 		        //memcpy(&nuev.actualPersona,&personas[i],sizeof(struct persona));
