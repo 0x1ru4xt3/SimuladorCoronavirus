@@ -218,6 +218,9 @@ int main(int argc, char** argv) {
 			if(seMueve != 0){
 				cap[seMueve-1].capacidad++;
 				nuev.actualPersona = personas[i];
+                if(cap[seMueve-1].capacidad==0){
+                    cap[seMueve-1].actualPersona=personas[i];
+                }
                 nuev.ultimo=&nuev;
                 nuev.siguienteAlma=&nuev;
 				struct almacenamiento aux;
