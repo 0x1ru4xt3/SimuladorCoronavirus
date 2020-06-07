@@ -241,7 +241,7 @@ int main(int argc, char** argv) {
 			}*/
 		}
         struct almacenamiento *almaux;
-        almaux=cap[0];
+        almaux=*cap[0];
         if(world_rank==0){
 	        printf("Vamos a imprimir\n");
 	        for(e=0;e<cap[0].capacidad;e++){
