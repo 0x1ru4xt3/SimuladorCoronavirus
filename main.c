@@ -275,7 +275,7 @@ int main(int argc, char** argv) {
 			printf("Y llegamos a los sends: 4\n");
 
 		// BARRERA
-		MPI_Barrier(MPI_COMM_WORLD);
+		//MPI_Barrier(MPI_COMM_WORLD);
 		printf("NODO %d LLEGA HASTA ENVIAR.\n", world_rank);
 
 		// RECIBIR ARRAIS DE PERSONAS DE NODOS COLINDANTES
