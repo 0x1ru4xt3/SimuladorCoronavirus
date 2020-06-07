@@ -202,8 +202,11 @@ int main(int argc, char** argv) {
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
 		struct envio envios[4];
 		struct almacenamiento cap[4];
-		for(i=0;i<4;i++)
+		for(i=0;i<4;i++){
 			cap[i].capacidad=0;
+            cap[i].ultimo=&cap[i];
+            cap[i].siguienteAlma=&cap[i];
+        }
 
 		for(i=0; i<pobNodo; i++){
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
@@ -223,7 +226,7 @@ int main(int argc, char** argv) {
 				if(world_rank==0)
 					printf("Carabin\n");
                 //cap[seMueve-1]->ultimo=&nuev;
-				cap[seMueve-1].ultimo->siguienteAlma = *nuev;
+				cap[seMueve-1].ultimo->siguienteAlma = &nuev;
 				if(world_rank==0)
 					printf("Ya\n");
                 cap[seMueve-1].ultimo->ultimo=&nuev;
