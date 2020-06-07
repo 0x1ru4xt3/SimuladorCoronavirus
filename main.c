@@ -209,6 +209,9 @@ int main(int argc, char** argv) {
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
 			struct almacenamiento nuev;
 
+			if(world_rank==4)
+				printf("Edad=%d, Se mueve=%d\n", personas[i].edad, seMueve);
+
 		    //Comprobacion de que ha cambiado bien el array.
 		    if(world_rank==4)
 		    	printf("Edad de persona[%d]=%d\n",i,personas[i].edad);
