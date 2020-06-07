@@ -223,7 +223,7 @@ int main(int argc, char** argv) {
                 nuev.siguienteAlma=&nuev;
 				struct almacenamiento aux;
 				aux=*cap[seMueve-1].ultimo;
-				cap[seMueve-1].ultimo->siguienteAlma = &nuev
+				cap[seMueve-1].ultimo->siguienteAlma = &nuev;
                 cap[seMueve-1].ultimo->ultimo=&nuev;
 				cap[seMueve-1].ultimo = &nuev;
 			}
