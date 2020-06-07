@@ -268,9 +268,10 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		for(e=0; e<4; e++){
-			for(i=0;i<envios[e].capacidad;i++){
-				printf("Envios[%d].Personas[%d].edad=%d", envios[e].personas[i].edad);
+		if(world_rank==0)
+			for(e=0; e<4; e++)
+				for(i=0;i<envios[e].capacidad;i++)
+					printf("Envios[%d].Personas[%d].edad=%d", envios[e].personas[i].edad);
 
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
