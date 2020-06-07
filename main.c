@@ -269,6 +269,7 @@ int main(int argc, char** argv) {
 			}
 		}
 
+		printf("NODO %d LLEGA HASTA AQUI.\n", world_rank);
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
 
