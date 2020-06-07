@@ -223,7 +223,7 @@ int main(int argc, char** argv) {
 				if(world_rank==0)
 					printf("Carabin\n");
                 //cap[seMueve-1]->ultimo=&nuev;
-				cap[seMueve-1].ultimo->siguienteAlma = &nuev;
+				cap[seMueve-1].ultimo->siguienteAlma = *nuev;
 				if(world_rank==0)
 					printf("Ya\n");
                 cap[seMueve-1].ultimo->ultimo=&nuev;
