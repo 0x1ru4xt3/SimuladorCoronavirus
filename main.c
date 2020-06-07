@@ -251,13 +251,12 @@ int main(int argc, char** argv) {
 			}
 		}
 
+		MPI_Datatype dataEnvio0, dataEnvio1, dataEnvio2, dataEnvio3;
+
         printf("Y llegamos a los sends:\n");
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
 		/// BORDE IZQUIERDO
-        MPI_Datatype dataEnvio0;
-        MPI_Datatype dataEnvio1;
-        MPI_Datatype dataEnvio2;
-        MPI_Datatype dataEnvio3;
+        //MIRAR EL DATATYPE, Que dependera de la cantidad de elementos que reciba de los otros elementos.
 
         crearTipoEnvio(&envios[0],&dataEnvio0,&dataPersona);
 		if(NWX != 0)
