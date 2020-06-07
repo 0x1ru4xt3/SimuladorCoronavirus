@@ -215,10 +215,14 @@ int main(int argc, char** argv) {
 			if(seMueve != 0){
 				cap[seMueve-1].capacidad++;
 				nuev.actualPersona = personas[i];
+                nuev.ultimo=&nuev;
+                nuev.siguienteAlma=&nuev;
 				struct almacenamiento aux;
                 //if(cap[seMueve-1].ultimo==NULL)
 				aux=*cap[seMueve-1].ultimo;
-				aux.siguienteAlma = &nuev;
+                //cap[seMueve-1]->ultimo=&nuev;
+				cap[seMueve-1].ultimo->siguienteAlma = &nuev;
+                cap[seMueve-1].ultimo->ultimo=&nuev;
 				cap[seMueve-1].ultimo = &nuev;
 		        if(world_rank==0)
 		          printf("\n Direccion del ultimo %p\n",cap[seMueve-1].ultimo);
@@ -240,6 +244,7 @@ int main(int argc, char** argv) {
 				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
 			}*/
 		}
+		
         struct almacenamiento *almaux;
         almaux=&cap[3];
         if(world_rank==0){
@@ -248,7 +253,7 @@ int main(int argc, char** argv) {
 	            printf("Edad iteracion %d es: %d\n ",e,almaux->actualPersona.edad);
 	            almaux=almaux->siguienteAlma;
 	        }
-	        printf("HE llegado hasta aqui\n");
+	        printf("He llegado hasta aqui\n");
         }
 
 
