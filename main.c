@@ -246,7 +246,7 @@ int main(int argc, char** argv) {
 	        printf("Vamos a imprimir\n");
 	        for(e=0;e<cap[3].capacidad;e++){
 	            printf("Edad iteracion %d es: %d\n ",e,almaux->actualPersona.edad);
-	            almaux=*almaux.siguienteAlma;
+	            almaux=&almaux.siguienteAlma;
 	        }
 	        printf("HE llegado hasta aqui\n");
         }
