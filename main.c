@@ -212,20 +212,16 @@ int main(int argc, char** argv) {
 			if(world_rank==4)
 				printf("Edad=%d, Se mueve=%d\n", personas[i].edad, seMueve);
 
-		    //Comprobacion de que ha cambiado bien el array.
-		    if(world_rank==4)
-		    	printf("Edad de persona[%d]=%d\n",i,personas[i].edad);
-
 			if(seMueve != 0){
 				cap[seMueve-1].capacidad++;
 				nuev.actualPersona = personas[i];
-		        //memcpy(&nuev.actualPersona,&personas[i],sizeof(struct persona));
-            	if(world_rank==4)
-		            printf("\n Edad antes de %d\n",nuev.actualPersona.edad);//Imprimir la edad
 				struct almacenamiento aux;
+                //if(cap[seMueve-1].ultimo==NULL)
 				aux=*cap[seMueve-1].ultimo;
 				aux.siguienteAlma = &nuev;
 				cap[seMueve-1].ultimo = &nuev;
+		        if(world_rank==0)
+		          printf("\n Direccion del ultimo %p\n",cap[seMueve-1].ultimo);//Imprimir la edad
 			}
 
 			// SI LA PERSONA CAMBIA DE NODO
