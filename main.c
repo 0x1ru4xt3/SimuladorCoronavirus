@@ -165,6 +165,8 @@ int main(int argc, char** argv) {
 	// CREAR POBLACION EN CADA NODO
 	for(i=0; i<capacidad; i++){
 		struct persona persaux = crearPersona(EDADMEDIA, nX, nY , desv, NWX, NWY); //Añadir la posición de inicio del cuadrante.
+    if(world_rank==0)
+      printf("La edad de esta persona es: %d \n",persaux.edad);
 		//push(int *arr, int index, int value, int *size, int *capacity){
 		//Hay que llevar un control de la longitud y del tamano actual de todos los arrays (MENUDO MARRON)
 		pushPersona(personas,longitud,persaux,&longitud,&capacidad);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
@@ -235,6 +237,7 @@ int main(int argc, char** argv) {
 			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
 			almaux=&cap[e];
 			for(i=0;i<envios[e].capacidad;i++){
+        printf("\n Edad antes de %d\n",envios[e].personas[i].edad);//Imprimir la edad
 				envios[e].personas[i]=almaux->actualPersona;
 				almaux=cap[e].siguienteAlma;
 				//cap[e]=*cap[e].siguienteAlma;
@@ -327,7 +330,6 @@ int main(int argc, char** argv) {
 				}
 			}
 		}
-
 
 		// FUNCION MPI: RECOGER VALORES DE NODOS Y SUMAR
 		curadosRonda = 0;
