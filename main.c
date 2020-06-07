@@ -221,7 +221,7 @@ int main(int argc, char** argv) {
 				aux.siguienteAlma = &nuev;
 				cap[seMueve-1].ultimo = &nuev;
 		        if(world_rank==0)
-		          printf("\n Direccion del ultimo %p\n",cap[seMueve-1].ultimo);//Imprimir la edad
+		          printf("\n Direccion del ultimo %p\n",cap[seMueve-1].ultimo);
 			}
 
 			// SI LA PERSONA CAMBIA DE NODO
@@ -240,8 +240,18 @@ int main(int argc, char** argv) {
 				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
 			}*/
 		}
+        struct almacenamiento *almaux;
+        almaux=cap[0];
+        if(world_rank==0){
+	        printf("Vamos a imprimir\n");
+	        for(e=0;e<cap[0].capacidad;e++){
+	            printf("Edad iteracion %d es: %d\n ",e,almaux.actualPersona.edad);
+	            almaux=cap[e].siguienteAlma;
+	        }
+	        printf("HE llegado hasta aqui\n");
+        }
 
-		struct almacenamiento *almaux;
+
 		// PASAR DEL LINKEDLIST A ARRAY
 		for(e=0; e<4; e++){
 			envios[e].capacidad=cap[e].capacidad;
