@@ -245,7 +245,7 @@ int main(int argc, char** argv) {
         if(world_rank==0){
 	        printf("Vamos a imprimir\n");
 	        for(e=0;e<cap[0].capacidad;e++){
-	            printf("Edad iteracion %d es: %d\n ",e,&almaux.actualPersona.edad);
+	            printf("Edad iteracion %d es: %d\n ",e,almaux->actualPersona.edad);
 	            almaux=cap[e].siguienteAlma;
 	        }
 	        printf("HE llegado hasta aqui\n");
