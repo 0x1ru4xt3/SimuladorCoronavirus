@@ -268,15 +268,9 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		if(world_rank==0)
-			for(e=0; e<4; e++)
-				for(i=0;i<envios[e].capacidad;i++)
-					printf("Envios[%d].Personas[%d].edad=%d", e, i, envios[e].personas[i].edad);
-
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
-
-		printf("NODO %d LLEGA HASTA AQUI 2.\n", world_rank);
+		printf("NODO %d LLEGA HASTA LINEA 273.\n", world_rank);
 
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
 		/// BORDE IZQUIERDO
@@ -291,6 +285,11 @@ int main(int argc, char** argv) {
 		/// BORDE INFERIOR
 		if(NWY+nY != ESCHEIGHT)
 			MPI_Send(&envios[3], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
+
+		// BARRERA
+		MPI_Barrier(MPI_COMM_WORLD);
+		printf("NODO %d LLEGA HASTA ENVIAR.\n", world_rank);
+
 
 		// RECIBIR ARRAIS DE PERSONAS DE NODOS COLINDANTES
 		if((NWX == 0 && NWY == 0) || (NWX == 0 && NWY == ESCHEIGHT-nY) || (NWY == 0 && NWX == ESCWIDTH-nX) || (NWY == ESCHEIGHT-nY && NWX == ESCWIDTH-nX)){
@@ -309,6 +308,11 @@ int main(int argc, char** argv) {
 			MPI_Recv(&envios[2], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			MPI_Recv(&envios[3], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		}
+
+		// BARRERA
+		MPI_Barrier(MPI_COMM_WORLD);
+		printf("NODO %d LLEGA HASTA RECIBIR.\n", world_rank);
+
 
 		// JUNTAR LOS CUATRO ARRAYS RECIBIDOS CON EL ARRAY QUE TIENE EL NODO
 		for (i=0; i<4; i++){
