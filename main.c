@@ -269,7 +269,7 @@ int main(int argc, char** argv) {
 			/// SI ES ESQUINA SOLO RECIBE 2 (En orden: SUPIZQ, INFIZQ, SUPDER, INFDER):
 			MPI_Recv(&envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			MPI_Recv(&envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		} else if ((NWX == 0) || (NWY == 0) || (NWX == ESCWIDTH-nX) || (NWY == ESCHEIGHT-nY))
+		} else if ((NWX == 0) || (NWY == 0) || (NWX == ESCWIDTH-nX) || (NWY == ESCHEIGHT-nY)){
 			/// SI ES MARGEN (En orden: IZQ, SUP, DER, INF):
 			MPI_Recv(&envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			MPI_Recv(&envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
