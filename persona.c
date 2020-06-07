@@ -138,7 +138,7 @@ void crearTipoEnvio(Envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype *persona
 	tam[0]=1;
 	tam[1]=envio->capacidad;
 
-    MPI_Aint dist[6],dir1,dir2;
+    MPI_Aint dist[2],dir1,dir2;
 	dist[0]=0;
 
 	MPI_Get_address(&envio->capacidad, &dir1);

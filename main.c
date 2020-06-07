@@ -171,13 +171,6 @@ int main(int argc, char** argv) {
 		pushPersona(personas,longitud,persaux,&longitud,&capacidad);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
 	}
 
-  //Comprobación de que se crea correctamente el array con las personas.
-  if(world_rank==4){
-    	for(i=0; i<capacidad; i++){
-          printf("La persona %d tiene la siguiente edad: %d \n", i,personas[i].edad);
-      }
-  }
-
 	// PRIMER INFECTADO! Ahora el primer infectado sera el primero creado.
 	if(world_rank == 0){
 		printf("STATUS: PRIMER INFECTADO!\n");
@@ -245,18 +238,8 @@ int main(int argc, char** argv) {
 			}*/
 		}
 
-        struct almacenamiento *almaux;
-        //almaux=&cap[3];
-        // if(world_rank==0){
-	    //     printf("Vamos a imprimir\n");
-	    //     for(e=0;e<cap[3].capacidad;e++){
-	    //         printf("Edad iteracion %d es: %d\n ",e,almaux->actualPersona.edad);
-	    //         almaux=almaux->siguienteAlma;
-	    //     }
-	    //     printf("He llegado hasta aqui\n");
-        // }
-
 		// PASAR DEL LINKEDLIST A ARRAY
+		struct almacenamiento *almaux;
 		for(e=0; e<4; e++){
 			envios[e].capacidad=cap[e].capacidad;
 			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
@@ -268,11 +251,7 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		// BARRERA
-		MPI_Barrier(MPI_COMM_WORLD);
-		printf("NODO %d LLEGA HASTA LINEA 273.\n", world_rank);
-
-
+        printf("Y llegamos a los sends:\n");
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
 		/// BORDE IZQUIERDO
         crearTipoEnvio(&envios[0],&dataEnvio,&dataPersona);
