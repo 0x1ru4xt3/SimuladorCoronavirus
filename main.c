@@ -170,8 +170,9 @@ int main(int argc, char** argv) {
 		//Hay que llevar un control de la longitud y del tamano actual de todos los arrays (MENUDO MARRON)
 		pushPersona(personas,longitud,persaux,&longitud,&capacidad);//Esto lo que deberia de hacer es meter a cada persona en su posicion correcta y redimensionar los arrays automaticamente (en teoria)
 	}
+
   //Comprobación de que se crea correctamente el array con las personas.
-  if(world_rank==0){
+  if(world_rank==4){
     	for(i=0; i<capacidad; i++){
           printf("La persona %d tiene la siguiente edad: %d \n", i,personas[i].edad);
       }
@@ -207,15 +208,17 @@ int main(int argc, char** argv) {
 		for(i=0; i<pobNodo; i++){
 			seMueve = moverPersona(&personas[i], ESCWIDTH, ESCHEIGHT, NWX, NWY, NWX+nX, NWY+nY);
 			struct almacenamiento nuev;
-      //Comprobacion de que no le ha pasado nada al array de personas.
-      if(world_rank==0)
-        printf("Edad de persona[%d]=%d\n",i,personas[i].edad);
+
+		    //Comprobacion de que ha cambiado bien el array.
+		    if(world_rank==4)
+		    	printf("Edad de persona[%d]=%d\n",i,personas[i].edad);
 
 			if(seMueve != 0){
 				cap[seMueve-1].capacidad++;
 				nuev.actualPersona = personas[i];
 		        //memcpy(&nuev.actualPersona,&personas[i],sizeof(struct persona));
-		        printf("\n Edad antes de %d\n",nuev.actualPersona.edad);//Imprimir la edad
+            	if(world_rank==4)
+		            printf("\n Edad antes de %d\n",nuev.actualPersona.edad);//Imprimir la edad
 				struct almacenamiento aux;
 				aux=*cap[seMueve-1].ultimo;
 				aux.siguienteAlma = &nuev;
