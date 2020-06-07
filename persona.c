@@ -146,7 +146,7 @@ void crearTipoEnvio(Envio *envio, MPI_Datatype *MPI_DATOS, MPI_Datatype *persona
 	MPI_Get_address(&envio->capacidad, &dir1);
 	MPI_Get_address(envio->personas, &dir2);
 
-    printf("Direccion1=%p, Direccion2=%p\n", dir[1], dir[2]);
+    printf("Direccion1=%p, Direccion2=%p\n", dir1, dir2);
 
 	dist[1]=dir2-dir1;
 
