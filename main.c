@@ -213,21 +213,15 @@ int main(int argc, char** argv) {
 				printf("Edad=%d, Se mueve=%d\n", personas[i].edad, seMueve);
 
 			if(seMueve != 0){
-				if(world_rank==0)
-		          printf("Carabin\n");
 				cap[seMueve-1].capacidad++;
 				nuev.actualPersona = personas[i];
-				if(world_rank==0)
-		          printf("Caraban\n");
                 nuev.ultimo=&nuev;
-				if(world_rank==0)
-		          printf("Que miro\n");
                 nuev.siguienteAlma=&nuev;
-                if(world_rank==0)
-                    printf("Se ha quedado aqui\n");
 				struct almacenamiento aux;
                 //if(cap[seMueve-1].ultimo==NULL)
 				aux=*cap[seMueve-1].ultimo;
+				if(world_rank==0)
+					printf("Carabin\n");
                 //cap[seMueve-1]->ultimo=&nuev;
 				cap[seMueve-1].ultimo->siguienteAlma = &nuev;
 				if(world_rank==0)
