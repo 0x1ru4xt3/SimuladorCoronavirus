@@ -254,24 +254,29 @@ int main(int argc, char** argv) {
         printf("Y llegamos a los sends:\n");
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
 		/// BORDE IZQUIERDO
-        crearTipoEnvio(&envios[0],&dataEnvio,&dataPersona);
+        MPI_Datatype dataEnvio0;
+        MPI_Datatype dataEnvio1;
+        MPI_Datatype dataEnvio2;
+        MPI_Datatype dataEnvio3;
+
+        crearTipoEnvio(&envios[0],&dataEnvio0,&dataPersona);
 		if(NWX != 0)
-			MPI_Send(&envios[0], 1, dataEnvio, world_rank-1, world_rank, MPI_COMM_WORLD);
+			MPI_Send(&envios[0], 1, dataEnvio0, world_rank-1, world_rank, MPI_COMM_WORLD);
 			printf("Y llegamos a los sends: 1\n");
 		/// BORDE SUPERIOR
-        crearTipoEnvio(&envios[1],&dataEnvio,&dataPersona);
+        crearTipoEnvio(&envios[1],&dataEnvio1,&dataPersona);
 		if(NWY != 0)
-			MPI_Send(&envios[1], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
+			MPI_Send(&envios[1], 1, dataEnvio1, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
 			printf("Y llegamos a los sends: 2\n");
 		/// BORDE DERECHO
-        crearTipoEnvio(&envios[2],&dataEnvio,&dataPersona);
+        crearTipoEnvio(&envios[2],&dataEnvio2,&dataPersona);
 		if(NWX+nX != ESCWIDTH)
-			MPI_Send(&envios[2], 1, dataEnvio, world_rank+1, world_rank, MPI_COMM_WORLD);
+			MPI_Send(&envios[2], 1, dataEnvio2, world_rank+1, world_rank, MPI_COMM_WORLD);
 			printf("Y llegamos a los sends: 3\n");
 		/// BORDE INFERIOR
-        crearTipoEnvio(&envios[3],&dataEnvio,&dataPersona);
+        crearTipoEnvio(&envios[3],&dataEnvio3,&dataPersona);
 		if(NWY+nY != ESCHEIGHT)
-			MPI_Send(&envios[3], 1, dataEnvio, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
+			MPI_Send(&envios[3], 1, dataEnvio3, world_rank-(ESCWIDTH/nX), world_rank, MPI_COMM_WORLD);
 			printf("Y llegamos a los sends: 4\n");
 
 		// BARRERA
@@ -281,19 +286,19 @@ int main(int argc, char** argv) {
 		// RECIBIR ARRAIS DE PERSONAS DE NODOS COLINDANTES
 		if((NWX == 0 && NWY == 0) || (NWX == 0 && NWY == ESCHEIGHT-nY) || (NWY == 0 && NWX == ESCWIDTH-nX) || (NWY == ESCHEIGHT-nY && NWX == ESCWIDTH-nX)){
 			/// SI ES ESQUINA SOLO RECIBE 2 (En orden: SUPIZQ, INFIZQ, SUPDER, INFDER):
-			MPI_Recv(&envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			MPI_Recv(&envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&envios[0], 1, dataEnvio0, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&envios[1], 1, dataEnvio1, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		} else if ((NWX == 0) || (NWY == 0) || (NWX == ESCWIDTH-nX) || (NWY == ESCHEIGHT-nY)){
 			/// SI ES MARGEN (En orden: IZQ, SUP, DER, INF):
-			MPI_Recv(&envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			MPI_Recv(&envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			MPI_Recv(&envios[2], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&envios[0], 1, dataEnvio0, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&envios[1], 1, dataEnvio1, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&envios[2], 1, dataEnvio2, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		} else {
 			/// SI ES DEL CENTRO:
-			MPI_Recv(&envios[0], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			MPI_Recv(&envios[1], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			MPI_Recv(&envios[2], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			MPI_Recv(&envios[3], 1, dataEnvio, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&envios[0], 1, dataEnvio0, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&envios[1], 1, dataEnvio1, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&envios[2], 1, dataEnvio2, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&envios[3], 1, dataEnvio3, world_rank, MPI_ANY_SOURCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		}
 
 		// BARRERA
@@ -310,19 +315,19 @@ int main(int argc, char** argv) {
 		}
 
 		// BARRERA
-		MPI_Barrier(MPI_COMM_WORLD);
+		/*MPI_Barrier(MPI_COMM_WORLD);
 
 		// FICHERO: SALTAR DE LINEA TRAS MOVER TODAS LAS PERSONAS
-		/*if(diasTranscurridos%BATX==0){
+		if(diasTranscurridos%BATX==0){
 			if(world_rank == 0) {
 				snprintf(linea1, sizeof("\n"), "\n");
 				MPI_File_seek(posiFile, offset1, MPI_SEEK_END);
 				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
 			}
-		}*/
+		}
 
 		// BARRERA
-		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Barrier(MPI_COMM_WORLD);*/
 
 	    // INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
         for(i=0; i<pobNodo; i++){
@@ -393,14 +398,16 @@ int main(int argc, char** argv) {
 		if(salida) break;
 	}
 
-	// FIN TIEMPO DE EJECUCION
-	clock_t fin = clock();
-	double tiempoTotal = (double)(inicio - fin) / CLOCKS_PER_SEC;
-
 	// FINALIZANDO PROGRAMA
 	if(world_rank == 0){
+		// FIN TIEMPO DE EJECUCION
+		clock_t fin = clock();
+		double tiempoTotal = (double)(inicio - fin) / CLOCKS_PER_SEC;
+
+		// IMPRIMIR ESTADO
 		printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
 		printf("STATUS: Tiempo de ejecucion en paralelo: %.2f\n", tiempoTotal);
+
 		// LIBERAR MEMORIA, CERRAR ARCHIVOS y CERRAR MPI AL ACABAR PROGRAMA
 		printf("STATUS: Liberando memoria alocada...\n");
 		printf("STATUS: Fin del programa.\n");
