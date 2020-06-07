@@ -236,7 +236,7 @@ int main(int argc, char** argv) {
 			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
 			almaux=&cap[e];
 			for(i=0;i<envios[e].capacidad;i++){
-        printf("\n Edad antes de %d\n",envios[e].personas[i]->edad);//Imprimir la edad
+        printf("\n Edad antes de %d\n",cap[e].actualPersona.edad);//Imprimir la edad
 				envios[e].personas[i]=almaux->actualPersona;
 				almaux=cap[e].siguienteAlma;
 				//cap[e]=*cap[e].siguienteAlma;
