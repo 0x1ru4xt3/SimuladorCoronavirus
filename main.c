@@ -256,10 +256,6 @@ int main(int argc, char** argv) {
 	    //     printf("He llegado hasta aqui\n");
         // }
 
-		// BARRERA
-		MPI_Barrier(MPI_COMM_WORLD);
-		printf("NODO %d LLEGA HASTA AQUI 1.\n", world_rank);
-
 		// PASAR DEL LINKEDLIST A ARRAY
 		for(e=0; e<4; e++){
 			envios[e].capacidad=cap[e].capacidad;
@@ -269,12 +265,16 @@ int main(int argc, char** argv) {
 				envios[e].personas[i]=almaux->actualPersona;
 				almaux=cap[e].siguienteAlma;
 				//cap[e]=*cap[e].siguienteAlma;
-
 			}
 		}
 
+		for(e=0; e<4; e++){
+			for(i=0;i<envios[e].capacidad;i++){
+				printf("Envios[%d].Personas[%d].edad=%d", envios[e].personas[i].edad);
+
 		// BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
+
 		printf("NODO %d LLEGA HASTA AQUI 2.\n", world_rank);
 
 		// MANDAR EL ARRAY DE PERSONAS QUE SE LE ENVIA A CADA NODO
