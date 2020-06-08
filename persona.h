@@ -31,7 +31,7 @@
 
  // DECISION DE INFECTAR UNA PERSONA por RADIO DE CONTAGIADO
  // (Par: struct persona, ints radio del infectado)
- int infecPersona(Persona *per, int coordenadas[][2], int infectaus, int radio, float probRadio);
+ int infecPersona(Persona *per, int **coordenadas, int infectaus, int radio, float probRadio);
 
  // DECISION DE MUERTE DE UNA PERSONA
  // (Par: struct persona)

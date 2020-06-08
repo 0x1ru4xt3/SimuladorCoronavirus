@@ -90,7 +90,7 @@ int moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY,
 
 // DECISION DE INFECTAR UNA PERSONA por RADIO DE CONTAGIADO
 // (Par: struct persona, ints radio del infectado)
-int infecPersona(Persona *per, int coordenadas[][2], int infectaus, int radio, float probRadio){
+int infecPersona(Persona *per, int **coordenadas, int infectaus, int radio, float probRadio){
     float deci;
 	// SI NO ESTA INFECTADO y NO LO HA ESTADO
 	if(per->estado == 0){
@@ -195,26 +195,3 @@ void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS){
 	MPI_Type_create_struct(6,tam,dist,tipo,MPI_DATOS);
 	MPI_Type_commit(MPI_DATOS);
 }
-/*
-void crearTipoCoordenadas(struct , MPI_Datatype *MPI_DATOS, MPI_Datatype *persona){
-    MPI_Datatype tipo[2];
-    tipo[0]=MPI_INT;
-	tipo[1]=*persona;
-
-    int tam[2];
-	tam[0]=1;
-	tam[1]=envio->capacidad;
-
-    MPI_Aint dist[2],dir1,dir2;
-	dist[0]=0;
-
-	MPI_Get_address(&envio->capacidad, &dir1);
-	MPI_Get_address(envio->personas, &dir2);
-
-	dist[1]=dir2-dir1;
-
-    //Creacion del tipo
-    MPI_Type_create_struct(2,tam,dist,tipo,MPI_DATOS);
-    MPI_Type_commit(MPI_DATOS);
-}
-*/

@@ -22,6 +22,7 @@ struct enviarInfectados{
 };
 
 /*
+JURAU CON ESTE FUNCIONA: ./run.sh main 100 500 450 10 0.9 500 35 1
 204 y 234 asteriscos,
 pobNodo==capacidad
 ^*/
@@ -101,6 +102,16 @@ int main(int argc, char** argv) {
 	int len, samatao, seMueve;
 	char linea1[30];
 	int salida = 0;
+    int numInfectados;
+    int capela;
+    int nodd;
+    int tam;
+    int **coordenadasInfectadas;
+
+    struct almacenamiento *almaux;
+    struct envio envios[4];
+    struct envio envInf[4];
+    struct almacenamiento cap[4];
 
 	if(world_rank == 0){
 		muertosTotales = 0;
@@ -114,6 +125,8 @@ int main(int argc, char** argv) {
 	MPI_Datatype dataPersona;
 	crearTipoPersona(&persVirtual, &dataPersona);
 
+    MPI_Status status1,status2,status3,status4;
+    MPI_Datatype dataEnvio0, dataEnvio1, dataEnvio2, dataEnvio3;
 	MPI_Datatype dataEnvio;
 	struct envio enviotipo;
 	//crearTipoEnvio(&enviotipo,&dataEnvio,&dataPersona);
@@ -125,8 +138,6 @@ int main(int argc, char** argv) {
 		nX=ESCWIDTH/(int)floor(sqrt(world_size));
 		nY=ESCHEIGHT/(int)ceil(sqrt(world_size));
 		pobNodo=round(POBLACION/world_size);
-
-        printf("nX=%d y nY=%d\n", nX, nY);
 	}
 
 	// PASAR A CADA NODO el tamaño de nX y de nY, broadcat.
@@ -149,7 +160,7 @@ int main(int argc, char** argv) {
 	MPI_Offset offset1;
 	MPI_File posiFile;
 	MPI_Status statPosic;
-	posic = MPI_File_open( MPI_COMM_WORLD, "historialposic.txt", MPI_MODE_RDWR | MPI_MODE_CREATE, MPI_INFO_NULL, &posiFile);
+	posic = MPI_File_open( MPI_COMM_WORLD, "historialposic.txt", MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &posiFile);
 
 	// INICIALIZACION ARRAY PERSONAS
 	struct persona *personas;
@@ -193,8 +204,6 @@ int main(int argc, char** argv) {
 
         // MOVER -----------------------------------------------------------------------------------------
 		// MOVER PERSONA y CAMBIAR VELOCIDAD PARA LA SIGUIENTE RONDA
-		struct envio envios[4];
-		struct almacenamiento cap[4];
 		for(i=0;i<4;i++){
 			cap[i].capacidad=0;
             cap[i].ultimo=&cap[i];
@@ -217,8 +226,8 @@ int main(int argc, char** argv) {
 
                 nuev.ultimo=&nuev;
                 nuev.siguienteAlma=&nuev;
-				struct almacenamiento aux;
-				aux=*cap[seMueve-1].ultimo;
+				//struct almacenamiento aux;
+				//aux=*cap[seMueve-1].ultimo;
 				cap[seMueve-1].ultimo->siguienteAlma = &nuev;
                 cap[seMueve-1].ultimo->ultimo=&nuev;
 				cap[seMueve-1].ultimo = &nuev;
@@ -229,20 +238,11 @@ int main(int argc, char** argv) {
                 pobNodo--;
                 longitud--;
 			}
-
-			// FICHERO: GUARDAR CAMBIOS DE PERSONA
-			if(diasTranscurridos%BATX==0){
-				// ESCRIBIR EN FICHERO CON MPI
-				len = sprintf(linea1, "%d,%d,%d:", personas[i].pos[0], personas[i].pos[1], personas[i].estado);
-				offset1 = (world_rank*len*pobNodo) + (len*i);
-				MPI_File_seek(posiFile, offset1, MPI_SEEK_SET);
-				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
-			}
 		}
 
 		// PASAR DEL LINKEDLIST A ARRAY
-		struct almacenamiento *almaux;
-		for(e=0; e<4; e++){
+		//struct almacenamiento *almaux;
+		for (e=0; e<4; e++){
 			envios[e].capacidad=cap[e].capacidad;
 			envios[e].personas=malloc(envios[e].capacidad*sizeof(struct persona));
 			almaux=&cap[e];
@@ -257,7 +257,7 @@ int main(int argc, char** argv) {
 		/// BORDE IZQUIERDO
         //MIRAR EL DATATYPE, Que dependera de la cantidad de elementos que reciba de los otros elementos.
 
-        MPI_Datatype dataEnvio0, dataEnvio1, dataEnvio2, dataEnvio3;
+        //MPI_Datatype dataEnvio0, dataEnvio1, dataEnvio2, dataEnvio3;
         crearTipoEnvio(&envios[0],&dataEnvio0,&dataPersona);
 		if(NWX > 0){
             MPI_Isend(&envios[0].capacidad,1,MPI_INT,world_rank-1,0, MPI_COMM_WORLD,&request); //Enviar capacidad del array para crear el datatype.
@@ -282,6 +282,7 @@ int main(int argc, char** argv) {
 			MPI_Isend(&envios[3], 1, dataEnvio3, world_rank+(ESCWIDTH/nX),1, MPI_COMM_WORLD,&request);
         }
 
+        printf("1º free\n");
         // LIBERAR ESPACIO DEL ARRAY MALLOC
         for(e=0; e<4; e++){
             if (envios[e].capacidad > 0){
@@ -290,13 +291,8 @@ int main(int argc, char** argv) {
 
             envios[e].capacidad=0;
         }
+        printf("1.1º free\n");
 
-		// BARRERA
-        printf("Soy fulano de %d y he pasado el COVID\n", world_rank);
-		//MPI_Barrier(MPI_COMM_WORLD);
-
-        int tam;
-        MPI_Status status1,status2,status3,status4;
 		// RECIBIR ARRAIS DE PERSONAS DE NODOS COLINDANTES
         if((NWX == 0 && NWY == 0) || (NWX == 0 && NWY == ESCHEIGHT-nY) || (NWY == 0 && NWX == ESCWIDTH-nX) || (NWY == ESCHEIGHT-nY && NWX == ESCWIDTH-nX)){
             // SI ES ESQUINA SOLO RECIBE 2 (En orden: SUPIZQ, INFIZQ, SUPDER, INFDER):
@@ -362,44 +358,22 @@ int main(int argc, char** argv) {
 			MPI_Recv(&envios[3], 1, dataEnvio3, status4.MPI_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		}
 
-		// BARRERA
-		//MPI_Barrier(MPI_COMM_WORLD);
-
 		// JUNTAR LOS CUATRO ARRAYS RECIBIDOS CON EL ARRAY QUE TIENE EL NODO
 		for (i=0; i<4; i++){
 			for (e=0; e<envios[i].capacidad; e++){
 				pushPersona(&personas, longitud, &envios[i].personas[e], &longitud, &capacidad);
-                //pushPersona(&personas,longitud,&persaux,&longitud,&capacidad);
 				pobNodo++;
 			}
 		}
 
-        printf("EL nodo %d tiene %d personas\n", world_rank, pobNodo);
-
-		// BARRERA
-		MPI_Barrier(MPI_COMM_WORLD);
-
-		// FICHERO: SALTAR DE LINEA TRAS MOVER TODAS LAS PERSONAS
-		if(diasTranscurridos%BATX==0){
-			if(world_rank == 0) {
-				snprintf(linea1, sizeof("\n"), "\n");
-				MPI_File_seek(posiFile, offset1, MPI_SEEK_END);
-				MPI_File_write(posiFile, linea1, sizeof(linea1), MPI_CHAR, &statPosic);
-			}
-		}
-
+        printf("2º free\n");
         // LIBERAR MEMODIA DE MALLOC ENVIO
         for(e=0; e<4; e++){
             if (envios[e].capacidad > 0){
-                if(world_rank==0){
-                    printf("HOLITA %d y la e es: %d y la edad de la persona es envios[e].personas[0].edad=%d\n",envios[e].capacidad,e, envios[e].personas[0].edad);
-                }
                 free(envios[e].personas);
-                printf("Soy %d, estamos en el segundo free.\n", world_rank);
             }
         }
-
-        printf("SOY UN SUPERVIVIENTE %d \n", world_rank);
+        printf("2.1º free\n");
 
         // FIN MOVER -------------------------------------------------------------------------------------------
 
@@ -407,76 +381,174 @@ int main(int argc, char** argv) {
 		MPI_Barrier(MPI_COMM_WORLD);
 
         // INFECCIONES -----------------------------------------------------------------------------------------
-        // /// COJO MIS PERSONAS QUE ESTAN INFECTADOS EN LOS BORDES Y CREO 4 ARRAYS (1 por cada lado)
-        // int coordenadasInfectadas1[pobNodo][2];
-        // int coordenadasInfectadas2[pobNodo][2];
-        // int coordenadasInfectadas3[pobNodo][2];
-        // int coordenadasInfectadas4[pobNodo][2];
-        // int cont1 = 0;
-        // int cont2 = 0;
-        // int cont3 = 0;
-        // int cont4 = 0;
-        //
-        // for(i=0; i<pobNodo; i++){
-        //     if(personas[i].estado == 1 || personas[i].estado == 2){
-        //         // SI ESTA EN LA ORILLA (Orden: DERECHA, ABAJO, IZQUIERDA, ARRIBA)
-        //         if (personas[i].pos[0] >= (world_rank*nX+(nX-RADIO))) {
-        //             coordenadasInfectadas1[cont1][1] = personas[i].pos[0];
-        //             coordenadasInfectadas1[cont1][2] = personas[i].pos[1];
-        //             cont1++;
-        //         } else if (personas[i].pos[1] >= (world_rank*nY+(nY-RADIO))) {
-        //             coordenadasInfectadas2[cont2][1] = personas[i].pos[0];
-        //             coordenadasInfectadas2[cont2][2] = personas[i].pos[1];
-        //             cont2++;
-        //         } else if (personas[i].pos[0] <= (world_rank*nX+(RADIO))) {
-        //             coordenadasInfectadas3[cont3][1] = personas[i].pos[0];
-        //             coordenadasInfectadas3[cont3][2] = personas[i].pos[1];
-        //             cont3++;
-        //         } else if (personas[i].pos[1] <= (world_rank*nY+(RADIO))) {
-        //             coordenadasInfectadas4[cont4][1] = personas[i].pos[0];
-        //             coordenadasInfectadas4[cont4][2] = personas[i].pos[1];
-        //             cont4++;
-        //         }
-        //     }
-        // }
-        //
-        // /// ENVIO ESOS ARRAYS A SU NODO
-        // //MPI_Datatype dataEnvio0, dataEnvio1, dataEnvio2, dataEnvio3;
-        // crearTipoCoordenadas(&envios[0],&dataEnvio0,&dataPersona);
-        // //// BORDE IZQUIERDO
-		// if(NWX > 0){
-        //     MPI_Isend(&envios[0].capacidad,1,MPI_INT,world_rank-1,0, MPI_COMM_WORLD,&request);
-		// 	MPI_Isend(&envios[0], 1, dataEnvio0, world_rank-1,1, MPI_COMM_WORLD,&request);
-        // }
-		// 	printf("Soy %d Y llegamos a los sends: 1\n", world_rank);
-		// //// BORDE SUPERIOR
-        // crearTipoEnvio(&envios[1],&dataEnvio1,&dataPersona);
-		// if(NWY > 0){
-        //     MPI_Isend(&envios[1].capacidad,1,MPI_INT,world_rank-(ESCWIDTH/nX),0, MPI_COMM_WORLD,&request);
-		// 	MPI_Isend(&envios[1], 1, dataEnvio1, world_rank-(ESCWIDTH/nX),1, MPI_COMM_WORLD,&request);
-        // }
-		// printf("Soy %d Y llegamos a los sends: 2\n", world_rank);
-		// //// BORDE DERECHO
-        // crearTipoEnvio(&envios[2],&dataEnvio2,&dataPersona);
-		// if(NWX+nX < ESCWIDTH){
-        //     MPI_Isend(&envios[2].capacidad,1,MPI_INT, world_rank+1,0, MPI_COMM_WORLD,&request);
-		// 	MPI_Isend(&envios[2], 1, dataEnvio2, world_rank+1,1, MPI_COMM_WORLD,&request);
-        // }
-		// printf("Soy %d Y llegamos a los sends: 3\n", world_rank);
-		// //// BORDE INFERIOR
-        // crearTipoEnvio(&envios[3],&dataEnvio3,&dataPersona);
-		// if(NWY+nY < ESCHEIGHT){
-        //     printf("Soy el procesador %d y world_rank+(ESCWIDTH/nX) es %d\n", world_rank, world_rank+(ESCWIDTH/nX));
-        //     MPI_Isend(&envios[3].capacidad,1,MPI_INT, world_rank+(ESCWIDTH/nX),0, MPI_COMM_WORLD,&request);
-		// 	MPI_Isend(&envios[3], 1, dataEnvio3, world_rank+(ESCWIDTH/nX),1, MPI_COMM_WORLD,&request);
-        // }
+        /// COJO MIS PERSONAS QUE ESTAN INFECTADOS EN LOS BORDES Y CREO 4 ARRAYS (1 por cada lado)
+        struct almacenamiento alm[4];
+        for(i=0;i<4;i++){
+            alm[i].capacidad=0;
+            alm[i].ultimo=&alm[i];
+            alm[i].siguienteAlma=&alm[i];
+        }
 
-        /// RECIBO ARRAYS DE NODOS ADYACENTES numInfectados y coordenadasInfectadas nos las envian
-        int numInfectados = 0;
-        int coordenadasInfectadas[numInfectados+pobNodo][2];
-        // ------------------------- //
-        // ------- MPI RECIF ------- //
-        // ------------------------- //
+        printf("420\n");
+
+        for(i=0; i<pobNodo; i++){
+            if(personas[i].estado == 1 || personas[i].estado == 2){
+                // SI ESTA EN LA ORILLA (Orden: IZQUIERDA, ARRIBA, DERECHA, ABAJO)
+                if (personas[i].pos[0] <= (world_rank*nX+(RADIO))) {
+                    nodd = 0;
+                } else if (personas[i].pos[1] <= (world_rank*nY+(RADIO))) {
+                    nodd = 1;
+                } else if (personas[i].pos[0] >= (world_rank*nX+(nX-RADIO))) {
+                    nodd = 2;
+                } else if (personas[i].pos[1] >= (world_rank*nY+(nY-RADIO))) {
+                    nodd = 3;
+                }
+
+                struct almacenamiento almInfe;
+                almInfe.actualPersona = personas[i];
+                alm[nodd].capacidad++;
+
+                if(alm[nodd].capacidad==1){
+                    alm[nodd].actualPersona=personas[i];
+                }
+
+                almInfe.ultimo = &almInfe;
+                almInfe.siguienteAlma = &almInfe;
+
+                alm[nodd].ultimo->siguienteAlma = &almInfe;
+                alm[nodd].ultimo->ultimo=&almInfe;
+                alm[nodd].ultimo = &almInfe;
+            }
+        }
+
+        printf("450\n");
+
+        //De linkedlist a array:
+		for(e=0; e<4; e++){
+			envInf[e].capacidad=alm[e].capacidad;
+			envInf[e].personas=malloc(envInf[e].capacidad*sizeof(struct persona));
+			almaux=&alm[e];
+			for(i=0;i<envInf[e].capacidad;i++){
+				envInf[e].personas[i]=almaux->actualPersona;
+				almaux=alm[e].siguienteAlma;
+			}
+		}
+
+        printf("460\n");
+
+        /// ENVIO ESOS ARRAYS A SU NODO
+        crearTipoEnvio(&envInf[0], &dataEnvio0, &dataPersona);
+        //// BORDE IZQUIERDO
+		if(NWX > 0){
+            MPI_Isend(&envInf[0].capacidad,1,MPI_INT,world_rank-1,0, MPI_COMM_WORLD,&request);
+			MPI_Isend(&envInf[0], 1, dataEnvio0, world_rank-1,1, MPI_COMM_WORLD,&request);
+        }
+		//// BORDE SUPERIOR
+        crearTipoEnvio(&envInf[1],&dataEnvio1,&dataPersona);
+		if(NWY > 0){
+            MPI_Isend(&envInf[1].capacidad,1,MPI_INT,world_rank-(ESCWIDTH/nX),0, MPI_COMM_WORLD,&request);
+			MPI_Isend(&envInf[1], 1, dataEnvio1, world_rank-(ESCWIDTH/nX),1, MPI_COMM_WORLD,&request);
+        }
+		//// BORDE DERECHO
+        crearTipoEnvio(&envInf[2],&dataEnvio2,&dataPersona);
+		if(NWX+nX < ESCWIDTH){
+            MPI_Isend(&envInf[2].capacidad,1,MPI_INT, world_rank+1,0, MPI_COMM_WORLD,&request);
+			MPI_Isend(&envInf[2], 1, dataEnvio2, world_rank+1,1, MPI_COMM_WORLD,&request);
+        }
+		//// BORDE INFERIOR
+        crearTipoEnvio(&envInf[3],&dataEnvio3,&dataPersona);
+		if(NWY+nY < ESCHEIGHT){
+            MPI_Isend(&envInf[3].capacidad,1,MPI_INT, world_rank+(ESCWIDTH/nX),0, MPI_COMM_WORLD,&request);
+			MPI_Isend(&envInf[3], 1, dataEnvio3, world_rank+(ESCWIDTH/nX),1, MPI_COMM_WORLD,&request);
+        }
+
+        printf("POST SEND\n");
+
+        /// RECIBO ARRAYS DE NODOS ADYACENTES
+        if((NWX == 0 && NWY == 0) || (NWX == 0 && NWY == ESCHEIGHT-nY) || (NWY == 0 && NWX == ESCWIDTH-nX) || (NWY == ESCHEIGHT-nY && NWX == ESCWIDTH-nX)){
+            // SI ES ESQUINA SOLO RECIBE 2 (En orden: SUPIZQ, INFIZQ, SUPDER, INFDER):
+            MPI_Recv(&tam, 1, MPI_INT, MPI_ANY_SOURCE,0, MPI_COMM_WORLD, &status1);
+            envInf[0].capacidad=tam;
+            envInf[0].personas=malloc(envInf[0].capacidad*sizeof(struct persona));
+
+            crearTipoEnvio(&envInf[0],&dataEnvio0,&dataPersona);
+            MPI_Recv(&tam, 1, MPI_INT, MPI_ANY_SOURCE,0, MPI_COMM_WORLD, &status2);
+            envInf[1].capacidad=tam;
+            envInf[1].personas=malloc(envInf[1].capacidad*sizeof(struct persona));
+
+            crearTipoEnvio(&envInf[1],&dataEnvio1,&dataPersona);
+            MPI_Recv(&envInf[0], 1, dataEnvio0, status1.MPI_SOURCE,1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&envInf[1], 1, dataEnvio1, status2.MPI_SOURCE,1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else if ((NWX == 0) || (NWY == 0) || (NWX == ESCWIDTH-nX) || (NWY == ESCHEIGHT-nY)){
+            MPI_Recv(&tam, 1, MPI_INT, MPI_ANY_SOURCE,0, MPI_COMM_WORLD, &status1);
+            envInf[0].capacidad=tam;
+            envInf[0].personas=malloc(envInf[0].capacidad*sizeof(struct persona));
+
+            crearTipoEnvio(&envInf[0],&dataEnvio0,&dataPersona);
+            MPI_Recv(&tam, 1, MPI_INT, MPI_ANY_SOURCE,0, MPI_COMM_WORLD, &status2);
+            envInf[1].capacidad=tam;
+            envInf[1].personas=malloc(envInf[1].capacidad*sizeof(struct persona));
+
+            crearTipoEnvio(&envInf[1],&dataEnvio1,&dataPersona);
+            MPI_Recv(&tam, 1, MPI_INT, MPI_ANY_SOURCE,0, MPI_COMM_WORLD, &status3);
+            envInf[2].capacidad=tam;
+            envInf[2].personas=malloc(envInf[2].capacidad*sizeof(struct persona));
+
+            crearTipoEnvio(&envInf[2],&dataEnvio2,&dataPersona);
+
+            /// SI ES MARGEN (En orden: IZQ, SUP, DER, INF):
+            MPI_Recv(&envInf[0], 1, dataEnvio0, status1.MPI_SOURCE,1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&envInf[1], 1, dataEnvio1, status2.MPI_SOURCE,1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&envInf[2], 1, dataEnvio2, status3.MPI_SOURCE,1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&tam, 1, MPI_INT, MPI_ANY_SOURCE,0, MPI_COMM_WORLD, &status1);
+            envInf[0].capacidad=tam;
+            envInf[0].personas=malloc(envInf[0].capacidad*sizeof(struct persona));
+
+            crearTipoEnvio(&envios[0],&dataEnvio0,&dataPersona);
+            MPI_Recv(&tam, 1, MPI_INT, MPI_ANY_SOURCE,0, MPI_COMM_WORLD, &status2);
+            envInf[1].capacidad=tam;
+            envInf[1].personas=malloc(envInf[1].capacidad*sizeof(struct persona));
+
+            crearTipoEnvio(&envInf[1],&dataEnvio1,&dataPersona);
+            MPI_Recv(&tam, 1, MPI_INT, MPI_ANY_SOURCE,0, MPI_COMM_WORLD, &status3);
+            envInf[2].capacidad=tam;
+            envInf[2].personas=malloc(envInf[2].capacidad*sizeof(struct persona));
+
+            crearTipoEnvio(&envInf[2],&dataEnvio2,&dataPersona);
+            MPI_Recv(&tam, 1, MPI_INT, MPI_ANY_SOURCE,0, MPI_COMM_WORLD, &status4);
+            envInf[3].capacidad=tam;
+            envInf[3].personas=malloc(envInf[3].capacidad*sizeof(struct persona));
+
+            crearTipoEnvio(&envInf[3],&dataEnvio3,&dataPersona);
+
+            /// SI ES DEL CENTRO:
+            MPI_Recv(&envInf[0], 1, dataEnvio0, status1.MPI_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&envInf[1], 1, dataEnvio1, status2.MPI_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&envInf[2], 1, dataEnvio2, status3.MPI_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&envInf[3], 1, dataEnvio3, status4.MPI_SOURCE, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        }
+
+        printf("POST RECV\n");
+
+        numInfectados = 0;
+        capela = envInf[0].capacidad+envInf[1].capacidad+envInf[2].capacidad+envInf[3].capacidad+pobNodo;
+        coordenadasInfectadas = malloc(sizeof(int)*capela);
+        for(i=0; i<capela; i++){
+                coordenadasInfectadas[i] = malloc(sizeof(int)*2);
+        }
+
+        printf("570\n");
+
+        for(i=0; i<4; i++){
+            for(e=0; e<envInf[i].capacidad; e++){
+                coordenadasInfectadas[numInfectados][0] = envInf[i].personas[e].pos[0];
+                coordenadasInfectadas[numInfectados][1] = envInf[i].personas[e].pos[1];
+                numInfectados++;
+            }
+        }
+
+        printf("580\n");
 
 	    // INFECTADOS: COMPROBAR RADIO DE CONTAGIOS y DECISIONES DE MUERTE o SUPERVIVENCIA
         for(i=0; i<pobNodo; i++){
@@ -499,6 +571,8 @@ int main(int argc, char** argv) {
 			}
 		}
 
+        printf("600\n");
+
         // DECIDIR SI SE CONTAGIA CADA INDIVIDUO EN BASE AL RADIO DE UN CONTAGIADO
         if(numInfectados>0){
             for(i=0; i<pobNodo; i++){
@@ -507,11 +581,43 @@ int main(int argc, char** argv) {
                  }
              }
         }
+
+        printf("3º free\n");
+        // LIBERAR MEMORIA DE MALLOC ENVIO
+        for(e=0; e<4; e++){
+            if (envInf[e].capacidad > 0){
+                free(envInf[e].personas);
+            }
+        }
+
+        printf("4º free\n");
+        for(e=0; e<numInfectados; e++){
+            if(coordenadasInfectadas[e] != NULL){
+                free(coordenadasInfectadas[e]);
+            }
+        }
+        printf("4.1º free\n");
         // FIN INFECCIONES -----------------------------------------------------------------------------------------
+
+        // ESCRIBIR FICHERO ----------------------------------------------------------------------------------------
+        /// BARRERA
+		//MPI_Barrier(MPI_COMM_WORLD);
+
+        /// GUARDAR CAMBIOS DE PERSONA
+        for(i=0; i<pobNodo; i++){
+            if(diasTranscurridos%BATX==0){
+                // ESCRIBIR EN FICHERO CON MPI
+                len = snprintf(linea1, 30, "%d,%d,%d\n", personas[i].pos[0], personas[i].pos[1], personas[i].estado);
+                offset1 = 0;//(len * world_rank);
+                MPI_File_seek(posiFile, offset1, MPI_SEEK_END);
+                MPI_File_write(posiFile, linea1, len, MPI_CHAR, &statPosic);
+            }
+        }
+
+        // FIN ESCRIBIR FICHERO ---------------------------------------------------------------------------------------
 
         // BARRERA
 		MPI_Barrier(MPI_COMM_WORLD);
-
 		// FUNCION MPI: RECOGER VALORES DE NODOS Y SUMAR
 		curadosRonda = 0;
 		MPI_Reduce(&curadosNodo, &curadosRonda, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -544,18 +650,18 @@ int main(int argc, char** argv) {
 			}
 		}
 
-        // // LIBERAR ESPACIO DEL ARRAY MALLOC
-        // for(e=0; e<4; e++){
-        //     if (envios[e].capacidad > 0) {
-        //         for(i=0;i<envios[e].capacidad;i++){
-        //             printf("Soy %d y esta es la edad de la persona %d\n", world_rank, envios[e].personas[i].edad);
-        //         }
-        //         printf("W.R.=%d aqui deberia hacer el fri del array %dº y la capacidad es: %d\n", world_rank, e, envios[e].capacidad);
-        //         free(envios[e].personas);
-        //         envios[e].capacidad=0;
-        //         printf("Se ha realizado el free\n");
-        //     }
-        // }
+        // ESCRIBIR EN FICHERO QUE HA PASADO UN DIA, "--"
+        // BARRERA
+		MPI_Barrier(MPI_COMM_WORLD);
+
+        // GUARDAR CAMBIOS DE PERSONA
+        if(world_rank == 0 && diasTranscurridos%BATX==0){
+            // ESCRIBIR EN FICHERO CON MPI
+            len = snprintf(linea1, 5, "--\n");
+            offset1 = 0;
+            MPI_File_seek(posiFile, offset1, MPI_SEEK_END);
+            MPI_File_write(posiFile, linea1, len, MPI_CHAR, &statPosic);
+        }
 
 		// CONTROLAR SI SE DEBE FINALIZAR EL PROGRAMA
 		if(world_rank == 0){
@@ -575,7 +681,7 @@ int main(int argc, char** argv) {
 	if(world_rank == 0){
 		// FIN TIEMPO DE EJECUCION
 		clock_t fin = clock();
-		double tiempoTotal = (double)(inicio - fin) / CLOCKS_PER_SEC;
+		double tiempoTotal = (double)(fin - inicio) / CLOCKS_PER_SEC;
 
 		// IMPRIMIR ESTADO
 		printf("DIA %i: %i INFECTADOS (%i NUEVOS), %i RECUPERADOS (%i NUEVOS), %i FALLECIDOS (%i NUEVOS). POBLACION: %i, EDAD MEDIA: %i\n", diasTranscurridos, contagiadosTotales, contagiadosRonda, curadosTotales, curadosRonda, muertosTotales, muertosRonda, pobActual, edadMedia);
@@ -587,8 +693,8 @@ int main(int argc, char** argv) {
 	}
 
 	free(personas);
-	//MPI_File_close(&posiFile);
-	//fclose(dias);
+	MPI_File_close(&posiFile);
+	fclose(dias);
 	MPI_Finalize();
 
 	return 0;
