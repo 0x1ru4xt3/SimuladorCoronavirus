@@ -35,10 +35,10 @@ struct persona crearPersona(int edadMedia, int escAncho, int escAlto,int dev,int
 		per.probMuerte = EDAD5;
 
 	//CALCULO DE LA POSICION y VELOCIDAD INICIAL
-	per.pos[0] = rand()%escAlto+posX;
-	per.pos[1] = rand()%escAncho+posY;
-	per.vel[0] = rand()%10+(-5);
-	per.vel[1] = rand()%10+(-5);
+	per.pos[0] = posX + rand()%escAncho;
+	per.pos[1] = posY + rand()%escAlto;
+	per.vel[0] = rand()%10-5;
+	per.vel[1] = rand()%10-5;
 
 	return per;
 }
@@ -72,7 +72,7 @@ int moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY,
 	if (pers->pos[1] + pers->vel[1] >= escAlto){
 		pers->pos[1] = escAlto;
 		pers->vel[1] = rand()%5+(-5);
-	} else if(pers->pos[1] + pers->vel[0] <= 0){
+	} else if(pers->pos[1] + pers->vel[1] <= 0){
 		pers->pos[1] = 0;
 		pers->vel[1] = rand()%5;
     } else if(pers->pos[1] + pers->vel[1] <= cordY){
@@ -90,21 +90,25 @@ int moverPersona(Persona *pers, int escAncho, int escAlto, int cordX, int cordY,
 
 // DECISION DE INFECTAR UNA PERSONA por RADIO DE CONTAGIADO
 // (Par: struct persona, ints radio del infectado)
-int infecPersona(Persona *per, int rangox, int rangoy, int radio, float probRadio){
+int infecPersona(Persona *per, int coordenadas[][2], int infectaus, int radio, float probRadio){
     float deci;
 	// SI NO ESTA INFECTADO y NO LO HA ESTADO
 	if(per->estado == 0){
-		// SI ESTA DENTRO DEL RANGO DE EJE X DEL INFECTADO
-		if(per->pos[0] <= rangox+radio && per->pos[0] >= rangox-radio){
-			// SI ESTA DENTRO DEL RANGO DE EJE Y DEL INFECTADO
-			if(per->pos[1] <= rangoy+radio && per->pos[1] >= rangoy-radio){
-				deci = (rand()%100) /100.0;
-				if(deci>probRadio){
-					per->estado = 1;
-					return 1;
-				}
-			}
-		}
+        int i;
+        // PARA CADA INFECTADO
+        for(i=0; i<infectaus; i++){
+            // SI ESTA DENTRO DEL RANGO DE EJE X DEL INFECTADO
+    		if(per->pos[0] <= coordenadas[i][0]+radio && per->pos[0] >= coordenadas[i][0]-radio){
+    			// SI ESTA DENTRO DEL RANGO DE EJE Y DEL INFECTADO
+    			if(per->pos[1] <= coordenadas[i][1]+radio && per->pos[1] >= coordenadas[i][1]-radio){
+    				deci = (rand()%100) /100.0;
+    				if(deci<probRadio){
+    					per->estado = 1;
+    					return 1;
+    				}
+    			}
+    		}
+        }
 	}
 	return 0;
 }
@@ -113,7 +117,7 @@ int infecPersona(Persona *per, int rangox, int rangoy, int radio, float probRadi
 // (Par: struct persona)
 int matarPersona(Persona *per){
 	float deci = calcProb();
-    printf("FUNCION matarPersona: deci=%.2f, per-probMuerte=%.2f\n", deci, per->probMuerte);
+
 	if(deci <= per->probMuerte)
 		return 1;
 	else {
@@ -125,6 +129,7 @@ int matarPersona(Persona *per){
 			per->estado = 3;
 			return 0;
 		}
+        return 3;
 	}
 }
 
@@ -190,3 +195,26 @@ void crearTipoPersona(Persona *pers, MPI_Datatype *MPI_DATOS){
 	MPI_Type_create_struct(6,tam,dist,tipo,MPI_DATOS);
 	MPI_Type_commit(MPI_DATOS);
 }
+/*
+void crearTipoCoordenadas(struct , MPI_Datatype *MPI_DATOS, MPI_Datatype *persona){
+    MPI_Datatype tipo[2];
+    tipo[0]=MPI_INT;
+	tipo[1]=*persona;
+
+    int tam[2];
+	tam[0]=1;
+	tam[1]=envio->capacidad;
+
+    MPI_Aint dist[2],dir1,dir2;
+	dist[0]=0;
+
+	MPI_Get_address(&envio->capacidad, &dir1);
+	MPI_Get_address(envio->personas, &dir2);
+
+	dist[1]=dir2-dir1;
+
+    //Creacion del tipo
+    MPI_Type_create_struct(2,tam,dist,tipo,MPI_DATOS);
+    MPI_Type_commit(MPI_DATOS);
+}
+*/
